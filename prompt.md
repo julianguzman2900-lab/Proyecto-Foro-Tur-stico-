@@ -37,10 +37,59 @@ Estoy realizando un proyecto sobre Un sitio tipo foro donde los vendedores de vi
 *Los tours se mostrarán filtrados por continente, país, ciudad, actividad, duración y dificultad.
 </constrains>
 
-<outopu_format>
-Por favor, muestra la respuesta de la siguiente manera
-1. El código completo dentro de un bloque limpio para poder copiarlo.
-2. Una explicación muy corta y con palabras sencillas de cómo funciona el programa
-3. sugerencias de cambio 
-4. me vas a dar un archivo ordenado de la manera en que te dare en la captura de pantalla
-</outopu_format>
+<output_format>
+
+Quiero que todas las respuestas sigan exactamente este formato:
+
+1. Código completo
+   - Entrega el código completo dentro de bloques Markdown (```lenguaje```) para poder copiarlo directamente.
+   - No omitas archivos ni partes del código.
+   - Si modificas un archivo, entrégalo completo.
+
+2. Archivo de explicación
+   - Crea un archivo llamado `explicacion.md`.
+   - En este archivo explica de forma sencilla:
+     - Qué se implementó.
+     - Cómo funciona.
+     - Qué archivos fueron creados o modificados.
+     - Cómo probar la funcionalidad.
+     - Si es necesario ejecutar algún comando adicional.
+   - La explicación debe ser clara, breve y fácil de entender.
+
+3. Sugerencias
+   - Al final del archivo `explicacion.md` agrega una sección llamada **"Sugerencias de mejora"** con entre 3 y 5 recomendaciones para futuras versiones.
+   - No implementes esas mejoras a menos que yo las solicite.
+
+4. Estructura del proyecto
+   - Organiza todos los archivos siguiendo exactamente la estructura de carpetas que te proporcionaré en una captura de pantalla.
+   - Indica la ruta completa donde debe ubicarse cada archivo.
+   - Si es necesario crear nuevos archivos o carpetas, hazlo respetando esa estructura.
+   - Nunca cambies los nombres de las carpetas existentes sin indicarlo.
+
+5. Compatibilidad
+   - Todo el código debe ser compatible con Node.js, Express.js, EJS, MySQL y MongoDB.
+   - Mantén el código modular, limpio y fácil de mantener.
+
+6. Importante
+   - No elimines funcionalidades existentes.
+   - Antes de modificar un archivo, verifica que el cambio no rompa el funcionamiento del proyecto.
+   - Si detectas un error, corrígelo y explica brevemente la causa en `explicacion.md`.
+   - Si una funcionalidad requiere crear tablas en MySQL o colecciones en MongoDB, genera también los scripts correspondientes.
+   - Si agregas dependencias nuevas, indícalas en `explicacion.md` junto con el comando para instalarlas.
+
+   7. Diseño de la interfaz
+   - Utiliza un diseño moderno, limpio y minimalista.
+   - Mantén una apariencia profesional y enfocada en una plataforma de turismo.
+   - Utiliza una paleta de colores consistente en todo el proyecto. La paleta base será:
+     - Azul (#2563EB) como color principal.
+     - Verde (#10B981) para acciones positivas y confirmaciones.
+     - Blanco (#FFFFFF) para fondos principales.
+     - Gris claro (#F3F4F6) para fondos secundarios.
+     - Gris oscuro (#374151) para textos.
+     - Rojo (#EF4444) únicamente para errores o acciones de eliminación.
+   - El diseño debe ser completamente responsive para computadoras, tablets y teléfonos móviles.
+   - Utiliza sombras suaves, bordes redondeados y suficiente espacio entre los elementos para mejorar la experiencia del usuario.
+   - Evita interfaces sobrecargadas, colores excesivos y animaciones innecesarias.
+   - Todas las páginas deben mantener el mismo estilo visual y reutilizar componentes cuando sea posible.
+
+</output_format>
