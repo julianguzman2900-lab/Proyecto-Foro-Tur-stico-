@@ -41,3 +41,20 @@ footer {
   font-size: 0.8rem;
   color: var(--text-light);
 }
+
+/* Custom File Upload Styles */
+.file-input-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0,0,0,0) !important;
+  border: 0 !important;
+}
+
+.custom-file-upload {
+  display: block;
+  width: 100%;
+}

@@ -6,6 +6,12 @@
   margin-top: 1.5rem;
 }
 
+@media (max-width: 991px) {
+  .complaints-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .complaints-info-text {
   color: var(--text-muted);
   font-size: 0.9rem;
@@ -49,6 +55,8 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .message-subject {

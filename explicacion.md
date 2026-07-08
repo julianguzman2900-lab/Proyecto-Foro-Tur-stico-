@@ -27,6 +27,7 @@ proyecto-foro-turistico/
 ├── app.js                         # Punto de entrada del servidor
 ├── package.json                   # Dependencias del proyecto
 ├── init.sql                       # Script de inicialización de MySQL
+├── init_mongo.js                  # Script de inicialización de MongoDB
 ├── .env                           # Variables de entorno
 │
 ├── config/
@@ -83,22 +84,31 @@ proyecto-foro-turistico/
 
 ## 🚀 Cómo probar el funcionamiento
 
-1. Asegúrate de tener **Node.js**, **MySQL** y **MongoDB** instalados y en ejecución.
-2. Abre tu terminal de MySQL y ejecuta el script `init.sql` para crear la base de datos `foro_turistico` y sus tablas.
-3. Instala las dependencias necesarias:
+1. Asegúrate de tener **Node.js**, **MySQL** y **MongoDB** instalados.
+2. Inicia tu servidor local de **MongoDB** y **MySQL**.
+   - En Windows, si el servicio de MongoDB está detenido, puedes iniciarlo desde una terminal de administrador (`PowerShell`) ejecutando:
+     ```powershell
+     Start-Service -Name MongoDB
+     ```
+3. Abre tu terminal de MySQL y ejecuta el script `init.sql` para crear la base de datos `foro_turistico` y sus tablas.
+4. Instala las dependencias necesarias:
    ```bash
    npm install
    ```
-4. Configura el archivo `.env` si tus credenciales de MySQL o MongoDB son distintas a las por defecto (`localhost:3306`, `root` sin contraseña, MongoDB en `127.0.0.1:27017`).
-5. Inicia el servidor:
+5. Configura el archivo `.env` si tus credenciales de MySQL o MongoDB son distintas a las por defecto.
+6. Inicializa y crea las colecciones y datos semilla en la base de datos de **MongoDB** ejecutando:
+   ```bash
+   node init_mongo.js
+   ```
+7. Inicia el servidor:
    ```bash
    npm start
    ```
-6. Ve a tu navegador en: [http://localhost:3000](http://localhost:3000)
-7. Para probar el rol de Administrador, inicia sesión con:
+8. Ve a tu navegador en: [http://localhost:3000](http://localhost:3000)
+9. Para probar el rol de Administrador, inicia sesión con:
    - **Correo**: `admin@foro.com`
    - **Contraseña**: `admin123`
-8. Registra una nueva cuenta de Vendedor, ve al panel del administrador y apruébalo. Luego ingresa con el vendedor para crear un tour e intentar reservar con una cuenta de Viajero.
+10. Registra una nueva cuenta de Vendedor, ve al panel del administrador y apruébalo. Luego ingresa con el vendedor para crear un tour e intentar reservar con una cuenta de Viajero.
 
 ---
 

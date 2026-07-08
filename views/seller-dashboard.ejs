@@ -128,7 +128,10 @@
 
             <div class="form-group">
               <label for="images">Fotos de la Actividad</label>
-              <input type="file" id="images" name="images" class="form-control" accept="image/*" multiple required>
+              <div class="custom-file-upload">
+                <input type="file" id="images" name="images" class="form-control file-input-hidden" accept="image/*" multiple required onchange="updateFileName(this, 'images-label')">
+                <label for="images" class="btn btn-secondary btn-block" style="margin:0; text-align:center; font-weight:normal;" id="images-label">Seleccionar imágenes</label>
+              </div>
             </div>
           </div>
 
@@ -137,7 +140,7 @@
             <input type="text" id="contact_info" name="contact_info" class="form-control" placeholder="Ej: WhatsApp +506 8888-8888 o reservas@ejemplo.com" required>
           </div>
 
-          <div class="grid-2-col" style="margin-top: 1rem; margin-bottom: 1.25rem;">
+          <div class="grid-2-col">
             <div class="form-group">
               <label for="start_address">Dirección de inicio del tour</label>
               <input type="text" id="start_address" name="start_address" class="form-control" placeholder="Ej: 100m norte de la Iglesia de La Fortuna" required>
@@ -148,13 +151,53 @@
             </div>
           </div>
 
-          <div class="form-group form-group-margin">
-            <label for="activity_date">Fecha de la Actividad</label>
-            <input type="date" id="activity_date" name="activity_date" class="form-control" required min="<%= new Date().toISOString().split('T')[0] %>">
+          <h4 style="margin-top: 1.5rem; margin-bottom: 1rem; color: var(--primary);">Disponibilidad del Tour</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Configura el rango de fechas en las que ofrecerás el tour (mínimo 5 días) y los días específicos de la semana.</p>
+
+          <div class="grid-2-col" style="margin-bottom: 1rem;">
+            <div class="form-group form-group-margin">
+              <label for="start_date">Fecha de Inicio</label>
+              <input type="date" id="start_date" name="start_date" class="form-control" required min="<%= new Date().toISOString().split('T')[0] %>">
+            </div>
+            <div class="form-group form-group-margin">
+              <label for="end_date">Fecha de Finalización</label>
+              <input type="date" id="end_date" name="end_date" class="form-control" required min="<%= new Date(new Date().setDate(new Date().getDate() + 4)).toISOString().split('T')[0] %>">
+            </div>
           </div>
 
-          <button type="submit" class="btn btn-success btn-block">Crear y Enviar Publicación</button>
+          <div class="form-group form-group-margin">
+            <label>Días de la semana disponibles</label>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;" id="days-container">
+              <label><input type="checkbox" name="days_of_week" value="1" class="day-checkbox"> Lunes</label>
+              <label><input type="checkbox" name="days_of_week" value="2" class="day-checkbox"> Martes</label>
+              <label><input type="checkbox" name="days_of_week" value="3" class="day-checkbox"> Miércoles</label>
+              <label><input type="checkbox" name="days_of_week" value="4" class="day-checkbox"> Jueves</label>
+              <label><input type="checkbox" name="days_of_week" value="5" class="day-checkbox"> Viernes</label>
+              <label><input type="checkbox" name="days_of_week" value="6" class="day-checkbox"> Sábado</label>
+              <label><input type="checkbox" name="days_of_week" value="0" class="day-checkbox"> Domingo</label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-success btn-block" onclick="return validateCreateForm()">Crear y Enviar Publicación</button>
         </form>
+        
+        <script>
+        function validateCreateForm() {
+          const checkboxes = document.querySelectorAll('.day-checkbox');
+          const isChecked = Array.from(checkboxes).some(cb => cb.checked);
+          if (!isChecked) {
+            alert('Debes seleccionar al menos un día de la semana para la disponibilidad.');
+            return false;
+          }
+          const start = new Date(document.getElementById('start_date').value);
+          const end = new Date(document.getElementById('end_date').value);
+          if ((end - start) < (4 * 24 * 60 * 60 * 1000)) {
+            alert('El período de disponibilidad debe ser de al menos 5 días calendario.');
+            return false;
+          }
+          return true;
+        }
+        </script>
       </section>
     <% } %>
 
@@ -379,25 +422,67 @@
         </div>
       </div>
 
+      <h4 style="margin-top: 1.5rem; margin-bottom: 1rem; color: var(--primary);">Disponibilidad del Tour</h4>
+      
+      <div class="grid-2-col" style="margin-bottom: 1rem;">
+        <div class="form-group form-group-margin">
+          <label for="edit-start_date">Fecha de Inicio</label>
+          <input type="date" id="edit-start_date" name="start_date" class="form-control" required>
+        </div>
+        <div class="form-group form-group-margin">
+          <label for="edit-end_date">Fecha de Finalización</label>
+          <input type="date" id="edit-end_date" name="end_date" class="form-control" required>
+        </div>
+      </div>
+
       <div class="form-group form-group-margin">
-        <label for="edit-activity_date">Fecha de la Actividad</label>
-        <input type="date" id="edit-activity_date" name="activity_date" class="form-control" required min="<%= new Date().toISOString().split('T')[0] %>">
+        <label>Días de la semana disponibles</label>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;">
+          <label><input type="checkbox" name="days_of_week" value="1" class="edit-day-checkbox"> Lunes</label>
+          <label><input type="checkbox" name="days_of_week" value="2" class="edit-day-checkbox"> Martes</label>
+          <label><input type="checkbox" name="days_of_week" value="3" class="edit-day-checkbox"> Miércoles</label>
+          <label><input type="checkbox" name="days_of_week" value="4" class="edit-day-checkbox"> Jueves</label>
+          <label><input type="checkbox" name="days_of_week" value="5" class="edit-day-checkbox"> Viernes</label>
+          <label><input type="checkbox" name="days_of_week" value="6" class="edit-day-checkbox"> Sábado</label>
+          <label><input type="checkbox" name="days_of_week" value="0" class="edit-day-checkbox"> Domingo</label>
+        </div>
+      </div>
+
+      <div id="edit-dates-container" style="margin-top: 1.5rem; background: var(--bg-sec); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border); max-height: 250px; overflow-y: auto;">
       </div>
 
       <div class="form-group form-group-margin">
         <label for="edit-images">Añadir más fotos (opcional)</label>
-        <input type="file" id="edit-images" name="images" class="form-control" accept="image/*" multiple>
+        <div class="custom-file-upload">
+          <input type="file" id="edit-images" name="images" class="form-control file-input-hidden" accept="image/*" multiple onchange="updateFileName(this, 'edit-images-label')">
+          <label for="edit-images" class="btn btn-secondary btn-block" style="margin:0; text-align:center; font-weight:normal;" id="edit-images-label">Seleccionar imágenes</label>
+        </div>
       </div>
 
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="closeEditTourModal()">Cancelar</button>
-        <button type="submit" class="btn btn-success">Guardar Cambios</button>
+        <button type="submit" class="btn btn-success" onclick="return validateEditForm()">Guardar Cambios</button>
       </div>
     </form>
   </div>
 </div>
 
 <script>
+  function validateEditForm() {
+    const checkboxes = document.querySelectorAll('.edit-day-checkbox');
+    const isChecked = Array.from(checkboxes).some(cb => cb.checked);
+    if (!isChecked) {
+      alert('Debes seleccionar al menos un día de la semana para la disponibilidad.');
+      return false;
+    }
+    const start = new Date(document.getElementById('edit-start_date').value);
+    const end = new Date(document.getElementById('edit-end_date').value);
+    if ((end - start) < (4 * 24 * 60 * 60 * 1000)) {
+      alert('El período de disponibilidad debe ser de al menos 5 días calendario.');
+      return false;
+    }
+    return true;
+  }
   function openEditTourModal(tourStr) {
     const tour = JSON.parse(tourStr);
     const form = document.getElementById('edit-tour-form');
@@ -416,7 +501,44 @@
     document.getElementById('edit-contact_info').value = tour.contact_info;
     document.getElementById('edit-start_address').value = tour.start_address || '';
     document.getElementById('edit-coordinates').value = tour.coordinates || '';
-    document.getElementById('edit-activity_date').value = tour.activity_date ? tour.activity_date.split('T')[0] : '';
+    
+    if (tour.availability && tour.availability.startDate) {
+      document.getElementById('edit-start_date').value = tour.availability.startDate;
+      document.getElementById('edit-end_date').value = tour.availability.endDate;
+      const checkboxes = document.querySelectorAll('.edit-day-checkbox');
+      checkboxes.forEach(cb => {
+        cb.checked = tour.availability.daysOfWeek.includes(parseInt(cb.value));
+      });
+    } else if (tour.activity_date) {
+      // Fallback for legacy
+      const legacyDate = tour.activity_date.split('T')[0];
+      document.getElementById('edit-start_date').value = legacyDate;
+      const endDate = new Date(tour.activity_date);
+      endDate.setDate(endDate.getDate() + 5);
+      document.getElementById('edit-end_date').value = endDate.toISOString().split('T')[0];
+    }
+
+    const datesContainer = document.getElementById('edit-dates-container');
+    datesContainer.innerHTML = '<h5 style="margin-bottom:0.75rem;font-weight:700">Administrar Cupos por Fecha</h5>';
+    if (tour.dates && tour.dates.length > 0) {
+      tour.dates.forEach(d => {
+        const hasBookings = d.spots_available < d.spots_total;
+        datesContainer.innerHTML += `
+          <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem; align-items:center; padding-bottom:0.75rem; border-bottom:1px solid var(--border);">
+            <div style="font-size:0.9rem">
+              <strong>${d.date}</strong><br>
+              <span style="color:var(--text-muted)">${d.spots_available}/${d.spots_total} disponibles - ${d.status === 'sold_out' ? 'Agotado' : d.status === 'last_spots' ? 'Últimos cupos' : 'Disponible'}</span>
+            </div>
+            <div style="display:flex; gap:0.5rem; align-items:center; font-size:0.85rem">
+              <label>Cupos: <input type="number" name="date_spots[${d.date}]" value="${d.spots_total}" style="width:60px; padding:0.25rem" min="${d.spots_total - d.spots_available}"></label>
+              ${!hasBookings ? `<label style="color:var(--danger); cursor:pointer"><input type="checkbox" name="dates_to_delete" value="${d.date}"> Borrar</label>` : '<span style="color:var(--primary); font-size:0.8em">Con reservas</span>'}
+            </div>
+          </div>
+        `;
+      });
+    } else {
+      datesContainer.innerHTML += '<p style="font-size:0.85rem; color:var(--text-muted)">No hay fechas generadas todavía. Guarda los cambios para generarlas.</p>';
+    }
 
     document.getElementById('edit-tour-modal').style.display = 'flex';
   }
@@ -441,6 +563,19 @@
       }
     }
     return true;
+  }
+
+  function updateFileName(input, labelId) {
+    const label = document.getElementById(labelId);
+    if (input.files && input.files.length > 0) {
+      if (input.files.length === 1) {
+        label.textContent = input.files[0].name;
+      } else {
+        label.textContent = input.files.length + ' imágenes seleccionadas';
+      }
+    } else {
+      label.textContent = 'Seleccionar imágenes';
+    }
   }
 </script>
 

@@ -156,7 +156,10 @@
 
           <div class="form-group" style="margin-bottom: 1.5rem;">
             <label for="photos">Subir Fotografías (opcional)</label>
-            <input type="file" id="photos" name="photos" class="form-control" accept="image/*" multiple>
+            <div class="custom-file-upload">
+              <input type="file" id="photos" name="photos" class="form-control file-input-hidden" accept="image/*" multiple onchange="updateFileName(this, 'photos-label')">
+              <label for="photos" class="btn btn-secondary btn-block" style="margin:0; text-align:center; font-weight:normal;" id="photos-label">Seleccionar imágenes</label>
+            </div>
           </div>
 
           <button type="submit" class="btn btn-success">Publicar Comentario</button>
@@ -235,23 +238,63 @@
               
               <div class="form-group" style="margin-bottom: 1.25rem;">
                 <label for="book-date">Seleccionar Fecha</label>
-                <input type="date" id="book-date" name="date" class="form-control" required min="<%= new Date().toISOString().split('T')[0] %>">
+                <select id="book-date" name="date" class="form-control" required onchange="updateMaxSpots(this)">
+                  <option value="" disabled selected>Elige una fecha...</option>
+                  <% if (tour.dates && tour.dates.length > 0) { %>
+                    <% 
+                       const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+                       const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+                       tour.dates.forEach(d => { 
+                         const dateObj = new Date(d.date + 'T00:00:00');
+                         const dateStr = `${days[dateObj.getDay()]} ${dateObj.getDate()} de ${months[dateObj.getMonth()]}`;
+                    %>
+                      <option value="<%= d.date %>" data-spots="<%= d.spots_available %>" <%= d.status === 'sold_out' ? 'disabled' : '' %>>
+                        <%= dateStr %> — <%= d.status === 'sold_out' ? 'Agotado' : d.spots_available + ' cupos disponibles' %>
+                      </option>
+                    <% }) %>
+                  <% } else { %>
+                    <!-- Fallback para tours antiguos -->
+                    <option value="<%= tour.activity_date ? new Date(tour.activity_date).toISOString().split('T')[0] : '' %>" data-spots="<%= tour.spots_available %>">
+                      <%= tour.activity_date ? new Date(tour.activity_date).toLocaleDateString('es-ES') : '' %> — <%= tour.spots_available %> cupos disponibles
+                    </option>
+                  <% } %>
+                </select>
               </div>
 
               <div class="form-group" style="margin-bottom: 1.5rem;">
                 <label for="book-spots">Cantidad de Cupos (Máximo 3)</label>
-                <input type="number" id="book-spots" name="spots" class="form-control" value="1" min="1" max="<%= Math.min(3, tour.spots_available) %>" required>
+                <input type="number" id="book-spots" name="spots" class="form-control" value="1" min="1" max="3" required>
               </div>
 
               <button type="submit" class="btn btn-success btn-book">Reservar Actividad</button>
             </form>
 
             <script>
+              function updateMaxSpots(selectElem) {
+                const selectedOpt = selectElem.options[selectElem.selectedIndex];
+                const available = parseInt(selectedOpt.getAttribute('data-spots')) || 0;
+                const spotsInput = document.getElementById('book-spots');
+                const newMax = Math.min(3, available);
+                spotsInput.max = newMax;
+                if (parseInt(spotsInput.value) > newMax) {
+                  spotsInput.value = newMax;
+                }
+              }
+
+              // Llamar al inicio para fijar el máximo de la primera opción
+              document.addEventListener('DOMContentLoaded', () => {
+                const dateSelect = document.getElementById('book-date');
+                if (dateSelect && dateSelect.value) {
+                  updateMaxSpots(dateSelect);
+                }
+              });
+
               function validateBookingSpots(event) {
                 const spotsInput = document.getElementById('book-spots');
                 const spotsVal = parseInt(spotsInput.value);
-                if (spotsVal > 3) {
-                  alert('El máximo permitido es de 3 personas por reserva.');
+                const maxVal = parseInt(spotsInput.max);
+                if (spotsVal > maxVal) {
+                  alert('El máximo permitido para esta fecha es de ' + maxVal + ' personas.');
                   event.preventDefault();
                   return false;
                 }
@@ -302,7 +345,10 @@
       </div>
       <div class="form-group" style="margin-bottom: 1.5rem;">
         <label for="edit-photos">Agregar más fotos (opcional)</label>
-        <input type="file" id="edit-photos" name="photos" class="form-control" accept="image/*" multiple>
+        <div class="custom-file-upload">
+          <input type="file" id="edit-photos" name="photos" class="form-control file-input-hidden" accept="image/*" multiple onchange="updateFileName(this, 'edit-photos-label')">
+          <label for="edit-photos" class="btn btn-secondary btn-block" style="margin:0; text-align:center; font-weight:normal;" id="edit-photos-label">Seleccionar imágenes</label>
+        </div>
       </div>
       <div style="display: flex; justify-content: flex-end; gap: 1rem;">
         <button type="button" class="btn btn-secondary" onclick="closeEditCommentModal()">Cancelar</button>
@@ -313,6 +359,19 @@
 </div>
 
 <script>
+  function updateFileName(input, labelId) {
+    const label = document.getElementById(labelId);
+    if (input.files && input.files.length > 0) {
+      if (input.files.length === 1) {
+        label.textContent = input.files[0].name;
+      } else {
+        label.textContent = input.files.length + ' imágenes seleccionadas';
+      }
+    } else {
+      label.textContent = 'Seleccionar imágenes';
+    }
+  }
+
   function changeImage(element) {
     // Cambiar imagen principal
     document.getElementById('main-gallery-img').src = element.src;

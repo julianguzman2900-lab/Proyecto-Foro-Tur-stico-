@@ -1,0 +1,14 @@
+# Bases de datos locales
+data/
+
+# Dependencias de Node
+node_modules/
+
+# Variables de entorno y credenciales
+.env
+*.env
+config.env
+
+# Archivos del sistema y editores
+.DS_Store
+.vscode/

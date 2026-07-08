@@ -9,6 +9,18 @@ class Booking {
     return result.insertId;
   }
 
+  static async findById(id, user_id) {
+    const [rows] = await db.mysql.query(
+      'SELECT * FROM `bookings` WHERE `id` = ? AND `user_id` = ?',
+      [id, user_id]
+    );
+    return rows[0];
+  }
+
+  static async delete(id) {
+    await db.mysql.query('DELETE FROM `bookings` WHERE `id` = ?', [id]);
+  }
+
   static async findByUserId(user_id) {
     const [rows] = await db.mysql.query(
       'SELECT * FROM `bookings` WHERE `user_id` = ? ORDER BY `date` ASC',

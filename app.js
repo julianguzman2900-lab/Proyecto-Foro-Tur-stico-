@@ -43,6 +43,11 @@ app.use((req, res, next) => {
   res.locals.user = req.user || req.session.user || null;
   res.locals.error = req.session.error || null;
   res.locals.success = req.session.success || null;
+  
+  // Limpiar mensajes flash para que no reaparezcan en futuras peticiones
+  delete req.session.error;
+  delete req.session.success;
+  
   next();
 });
 

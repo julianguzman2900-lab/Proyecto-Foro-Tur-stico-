@@ -15,7 +15,16 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="logo-icon"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
         La guía del viajero
       </a>
-      <ul class="nav-links">
+
+      <button class="hamburger-btn" aria-label="Abrir menú" aria-expanded="false" id="hamburger-menu">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12" class="line-mid"></line>
+          <line x1="3" y1="6" x2="21" y2="6" class="line-top"></line>
+          <line x1="3" y1="18" x2="21" y2="18" class="line-bottom"></line>
+        </svg>
+      </button>
+
+      <ul class="nav-links" id="nav-menu">
         <li><a href="/" id="nav-home">Inicio</a></li>
         
         <% if (user) { %>
@@ -60,7 +69,40 @@
             setTimeout(() => {
               alert.style.display = 'none';
             }, 500);
-          }, 3000);
+          }, 4000); // 4 segundos de visualización
         });
+
+        // Menú Hamburguesa
+        const hamburgerBtn = document.getElementById('hamburger-menu');
+        const navMenu = document.getElementById('nav-menu');
+        
+        if (hamburgerBtn && navMenu) {
+          hamburgerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isExpanded = hamburgerBtn.getAttribute('aria-expanded') === 'true';
+            hamburgerBtn.setAttribute('aria-expanded', !isExpanded);
+            navMenu.classList.toggle('show-menu');
+            hamburgerBtn.classList.toggle('open');
+          });
+
+          // Cerrar al hacer click fuera
+          document.addEventListener('click', (e) => {
+            if (navMenu.classList.contains('show-menu') && !navMenu.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+              navMenu.classList.remove('show-menu');
+              hamburgerBtn.classList.remove('open');
+              hamburgerBtn.setAttribute('aria-expanded', 'false');
+            }
+          });
+
+          // Cerrar al seleccionar una opción (enlaces)
+          const navItems = navMenu.querySelectorAll('a');
+          navItems.forEach(item => {
+            item.addEventListener('click', () => {
+              navMenu.classList.remove('show-menu');
+              hamburgerBtn.classList.remove('open');
+              hamburgerBtn.setAttribute('aria-expanded', 'false');
+            });
+          });
+        }
       });
     </script>

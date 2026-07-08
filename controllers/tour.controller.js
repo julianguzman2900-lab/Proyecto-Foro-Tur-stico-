@@ -10,6 +10,36 @@ function isValidText(text) {
   return regex.test(text);
 }
 
+function generateAvailabilityDates(startDateStr, endDateStr, daysOfWeekArr, spotsTotal) {
+  const dates = [];
+  const start = new Date(startDateStr);
+  start.setUTCHours(0, 0, 0, 0);
+  const end = new Date(endDateStr);
+  end.setUTCHours(23, 59, 59, 999);
+
+  // Validate at least 5 days (difference between end and start >= 4 full days, approx 5 calendar days inclusive)
+  if ((end.getTime() - start.getTime()) < (4 * 24 * 60 * 60 * 1000)) {
+    throw new Error('El período de disponibilidad debe ser de al menos 5 días calendario.');
+  }
+
+  const daysOfWeek = Array.isArray(daysOfWeekArr) ? daysOfWeekArr.map(String) : [String(daysOfWeekArr)];
+
+  const current = new Date(start);
+  while (current <= end) {
+    const day = current.getUTCDay().toString();
+    if (daysOfWeek.includes(day)) {
+      dates.push({
+        date: current.toISOString().split('T')[0],
+        spots_total: spotsTotal,
+        spots_available: spotsTotal,
+        status: 'available'
+      });
+    }
+    current.setUTCDate(current.getUTCDate() + 1);
+  }
+  return dates;
+}
+
 // =============================================
 // TOURS - FORO PÚBLICO
 // =============================================
@@ -97,10 +127,10 @@ exports.getTourDetalle = async (req, res) => {
 };
 
 exports.createTour = async (req, res) => {
-  const { title, description, continent, country, city, activity, duration, difficulty, price, spots_total, contact_info, start_address, coordinates, activity_date } = req.body;
+  const { title, description, continent, country, city, activity, duration, difficulty, price, spots_total, contact_info, start_address, coordinates, start_date, end_date, days_of_week } = req.body;
 
-  if (!title || !description || !continent || !country || !city || !activity || !duration || !difficulty || !price || !spots_total || !contact_info || !start_address || !activity_date) {
-    req.session.error = 'Todos los campos son obligatorios (incluyendo dirección de inicio y fecha de actividad).';
+  if (!title || !description || !continent || !country || !city || !activity || !duration || !difficulty || !price || !spots_total || !contact_info || !start_address || !start_date || !end_date || !days_of_week) {
+    req.session.error = 'Todos los campos son obligatorios (incluyendo fechas de disponibilidad y días).';
     return res.redirect('/vendedor/dashboard');
   }
 
@@ -133,6 +163,13 @@ exports.createTour = async (req, res) => {
   }
 
   try {
+    const generatedDates = generateAvailabilityDates(start_date, end_date, days_of_week, parseInt(spots_total));
+
+    if (generatedDates.length === 0) {
+      req.session.error = 'El rango de fechas no incluye ninguno de los días seleccionados.';
+      return res.redirect('/vendedor/dashboard');
+    }
+
     const newTour = new Tour({
       seller_id: req.session.user.id,
       seller_name: req.session.user.name,
@@ -143,7 +180,13 @@ exports.createTour = async (req, res) => {
       images, contact_info,
       start_address,
       coordinates: coordinates || '',
-      activity_date: new Date(activity_date),
+      activity_date: new Date(start_date),
+      availability: {
+        startDate: start_date,
+        endDate: end_date,
+        daysOfWeek: Array.isArray(days_of_week) ? days_of_week.map(Number) : [Number(days_of_week)]
+      },
+      dates: generatedDates,
       status: 'pending'
     });
 
@@ -159,7 +202,7 @@ exports.createTour = async (req, res) => {
 
 exports.editTour = async (req, res) => {
   const { id } = req.params;
-  const { title, description, continent, country, city, activity, duration, difficulty, price, spots_total, contact_info, start_address, coordinates, activity_date } = req.body;
+  const { title, description, continent, country, city, activity, duration, difficulty, price, spots_total, contact_info, start_address, coordinates, start_date, end_date, days_of_week, date_spots, dates_to_delete } = req.body;
 
   try {
     const tour = await Tour.findById(id);
@@ -181,8 +224,8 @@ exports.editTour = async (req, res) => {
       return res.redirect('/vendedor/dashboard');
     }
 
-    if (!start_address || !activity_date) {
-      req.session.error = 'La dirección de inicio y la fecha de actividad son obligatorias.';
+    if (!start_address || !start_date || !end_date || !days_of_week) {
+      req.session.error = 'La dirección de inicio y la disponibilidad (fechas y días) son obligatorias.';
       return res.redirect(isAdmin ? '/admin/dashboard' : '/vendedor/dashboard');
     }
 
@@ -213,9 +256,59 @@ exports.editTour = async (req, res) => {
     tour.contact_info = contact_info;
     tour.start_address = start_address;
     tour.coordinates = coordinates || '';
-    tour.activity_date = new Date(activity_date);
     tour.spots_total = parseInt(spots_total);
     tour.spots_available = Math.max(0, tour.spots_available + diffSpots);
+
+    // Update Availability Range
+    tour.activity_date = new Date(start_date);
+    tour.availability = {
+      startDate: start_date,
+      endDate: end_date,
+      daysOfWeek: Array.isArray(days_of_week) ? days_of_week.map(Number) : [Number(days_of_week)]
+    };
+
+    // Update individual date spots
+    if (date_spots) {
+      Object.keys(date_spots).forEach(dateStr => {
+        const found = tour.dates.find(d => d.date === dateStr);
+        if (found) {
+          const newTotal = parseInt(date_spots[dateStr]);
+          const diff = newTotal - found.spots_total;
+          found.spots_total = newTotal;
+          found.spots_available = Math.max(0, found.spots_available + diff);
+          if (found.spots_available === 0) found.status = 'sold_out';
+          else if (found.spots_available <= 5) found.status = 'last_spots';
+          else found.status = 'available';
+        }
+      });
+    }
+
+    // Process dates_to_delete
+    if (dates_to_delete) {
+      const toDelete = Array.isArray(dates_to_delete) ? dates_to_delete : [dates_to_delete];
+      tour.dates = tour.dates.filter(d => {
+        if (!toDelete.includes(d.date)) return true;
+        // Cannot delete if there are reservations (spots_available < spots_total)
+        if (d.spots_available < d.spots_total) {
+          return true; // Keep it
+        }
+        return false;
+      });
+    }
+
+    // Generate new dates for the range, adding only those that don't exist yet
+    try {
+      const generatedDates = generateAvailabilityDates(start_date, end_date, days_of_week, parseInt(spots_total));
+      generatedDates.forEach(newDate => {
+        if (!tour.dates.find(d => d.date === newDate.date)) {
+          tour.dates.push(newDate);
+        }
+      });
+      tour.dates.sort((a, b) => new Date(a.date) - new Date(b.date));
+    } catch (err) {
+      req.session.error = err.message;
+      return res.redirect(isAdmin ? '/admin/dashboard' : '/vendedor/dashboard');
+    }
 
     if (req.files && req.files.length > 0) {
       req.files.forEach(file => tour.images.push(file.path && file.path.startsWith('http') ? file.path : '/uploads/' + file.filename));

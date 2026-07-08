@@ -27,6 +27,17 @@ const TourSchema = new mongoose.Schema({
       return d;
     }
   },
+  availability: {
+    startDate: { type: String },
+    endDate: { type: String },
+    daysOfWeek: [{ type: Number }]
+  },
+  dates: [{
+    date: { type: String },
+    spots_total: { type: Number },
+    spots_available: { type: Number },
+    status: { type: String, enum: ['available', 'last_spots', 'sold_out'], default: 'available' }
+  }],
   status: { type: String, enum: ['pending', 'approved', 'rejected', 'finished'], default: 'pending' },
   rejection_reason: { type: String, default: '' },
   created_at: { type: Date, default: Date.now }

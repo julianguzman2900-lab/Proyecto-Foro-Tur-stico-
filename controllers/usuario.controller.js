@@ -147,14 +147,38 @@ exports.createBooking = async (req, res) => {
       return res.redirect(req.get('Referrer') || '/');
     }
 
-    if (tour.spots_available < spotsNum) {
-      req.session.error = `Lo sentimos, solo quedan ${tour.spots_available} cupos disponibles.`;
-      return res.redirect(req.get('Referrer') || '/');
+    let targetDateObj = null;
+    if (tour.dates && tour.dates.length > 0) {
+      targetDateObj = tour.dates.find(d => d.date === date);
+      if (!targetDateObj) {
+        req.session.error = 'La fecha seleccionada no es válida o no está disponible.';
+        return res.redirect(req.get('Referrer') || '/');
+      }
+      if (targetDateObj.spots_available < spotsNum) {
+        req.session.error = `Lo sentimos, solo quedan ${targetDateObj.spots_available} cupos disponibles para esta fecha.`;
+        return res.redirect(req.get('Referrer') || '/');
+      }
+    } else {
+      // Legacy fallback
+      if (tour.spots_available < spotsNum) {
+        req.session.error = `Lo sentimos, solo quedan ${tour.spots_available} cupos disponibles.`;
+        return res.redirect(req.get('Referrer') || '/');
+      }
     }
 
     await Booking.create({ user_id, tour_id, tour_title: tour.title, date, spots: spotsNum });
 
-    tour.spots_available -= spotsNum;
+    if (targetDateObj) {
+      targetDateObj.spots_available -= spotsNum;
+      if (targetDateObj.spots_available === 0) targetDateObj.status = 'sold_out';
+      else if (targetDateObj.spots_available <= 5) targetDateObj.status = 'last_spots';
+      // Sum up global spots_available
+      tour.spots_available = tour.dates.reduce((sum, d) => sum + d.spots_available, 0);
+      tour.markModified('dates');
+    } else {
+      tour.spots_available -= spotsNum;
+    }
+    
     await tour.save();
 
     req.session.success = `¡Tu reserva para "${tour.title}" se ha confirmado exitosamente!`;
@@ -163,6 +187,51 @@ exports.createBooking = async (req, res) => {
     console.error(error);
     req.session.error = 'Ocurrió un error al procesar tu reserva. Inténtalo de nuevo.';
     res.redirect(req.get('Referrer') || '/');
+  }
+};
+
+exports.cancelBooking = async (req, res) => {
+  const { id } = req.params;
+  const user_id = req.session.user.id;
+
+  try {
+    const booking = await Booking.findById(id, user_id);
+    if (!booking) {
+      req.session.error = 'La reserva no existe o no te pertenece.';
+      return res.redirect('/mis-reservas');
+    }
+
+    const tour = await Tour.findById(booking.tour_id);
+    if (tour) {
+      // Find the specific date and restore spots
+      let targetDateObj = null;
+      if (tour.dates && tour.dates.length > 0) {
+        targetDateObj = tour.dates.find(d => d.date === booking.date);
+        if (targetDateObj) {
+          targetDateObj.spots_available = Math.min(targetDateObj.spots_total, targetDateObj.spots_available + booking.spots);
+          if (targetDateObj.spots_available === 0) targetDateObj.status = 'sold_out';
+          else if (targetDateObj.spots_available <= 5) targetDateObj.status = 'last_spots';
+          else targetDateObj.status = 'available';
+          tour.spots_available = tour.dates.reduce((sum, d) => sum + d.spots_available, 0);
+          tour.markModified('dates');
+        }
+      } 
+      
+      if (!targetDateObj) {
+        // Fallback
+        tour.spots_available += booking.spots;
+      }
+      await tour.save();
+    }
+
+    await Booking.delete(id);
+
+    req.session.success = 'La reserva ha sido cancelada exitosamente y los cupos han sido liberados.';
+    res.redirect('/mis-reservas');
+  } catch (error) {
+    console.error(error);
+    req.session.error = 'Error al cancelar la reserva.';
+    res.redirect('/mis-reservas');
   }
 };
 

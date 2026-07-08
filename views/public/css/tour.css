@@ -191,7 +191,10 @@
 }
 
 .modal-content-lg {
-  max-width: 600px;
+  width: 95%;
+  max-width: 900px;
+  background-color: transparent;
+  box-shadow: none;
   padding: 1.5rem;
   position: relative;
 }

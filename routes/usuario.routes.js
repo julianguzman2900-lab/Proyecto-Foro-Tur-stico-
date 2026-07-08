@@ -18,6 +18,7 @@ router.get('/auth/google/callback', passport.authenticate('google', { failureRed
 // Reservas
 router.post('/reservar', requireRole(['user']), usuarioController.createBooking);
 router.get('/mis-reservas', requireRole(['user']), usuarioController.getMisReservas);
+router.post('/reservar/cancelar/:id', requireRole(['user']), usuarioController.cancelBooking);
 
 // Quejas y Sugerencias
 router.get('/quejas', requireLogin, usuarioController.getQuejas);
