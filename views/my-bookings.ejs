@@ -1,0 +1,42 @@
+<%- include('partials/header') %>
+
+<h2 class="section-title">Mi Historial de Reservas</h2>
+
+<div class="calendar-view" style="margin-top: 1.5rem;">
+  <p style="color: var(--text-muted); margin-bottom: 2rem; font-weight: 500;">
+    Aquí se listan tus próximas actividades agendadas. Utiliza los botones "Ir con..." para iniciar la navegación a la ubicación del tour.
+  </p>
+
+  <% if (bookings.length === 0) { %>
+    <div style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
+      <p style="font-size: 1.15rem; font-weight: 600;">No tienes reservas confirmadas en este momento.</p>
+      <a href="/" class="btn btn-primary" style="margin-top: 1rem;">Explorar Actividades</a>
+    </div>
+  <% } else { %>
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <% bookings.forEach(booking => { %>
+        <div class="booking-item-card">
+          <div class="booking-item-info">
+            <h4><%= booking.tour_title %></h4>
+            <p style="margin-top: 0.25rem;">📅 <strong>Fecha agendada:</strong> <%= new Date(booking.date).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+            <p>👥 <strong>Cupos reservados:</strong> <%= booking.spots %> <%= booking.spots === 1 ? 'persona' : 'personas' %></p>
+            <p>📍 <strong>Dirección de destino:</strong> <%= booking.location %></p>
+            <p style="margin-top: 0.25rem; font-weight: 700; color: var(--primary);">Total pagado: $<%= booking.price * booking.spots %></p>
+          </div>
+          
+          <div class="booking-item-actions">
+            <% if (booking.tourExists) { %>
+              <a href="/tour/<%= booking.tour_id %>" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.6rem 1rem;">Ver Actividad</a>
+              <a href="<%= booking.googleMapsUrl %>" target="_blank" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.6rem 1rem; background-color: #4285F4;">Ir con Google Maps</a>
+              <a href="<%= booking.wazeUrl %>" target="_blank" class="btn btn-success" style="font-size: 0.85rem; padding: 0.6rem 1rem; background-color: #33CCFF;">Ir con Waze</a>
+            <% } else { %>
+              <span style="font-size: 0.85rem; color: var(--danger); font-weight: 700;">Actividad cancelada / no disponible</span>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

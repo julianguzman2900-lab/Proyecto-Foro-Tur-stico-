@@ -1,0 +1,86 @@
+<%- include('partials/header') %>
+
+<div class="auth-container">
+  <!-- Tarjeta de Login / Registro -->
+  <div class="auth-card" id="auth-card">
+    <div id="login-form-div">
+      <h2 class="auth-title">¡Hola de nuevo!</h2>
+      <p class="auth-subtitle">Inicia sesión para reservar actividades y comentar en el foro</p>
+      
+      <form action="/login" method="POST">
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label for="login-email">Correo Electrónico</label>
+          <input type="email" id="login-email" name="email" class="form-control" placeholder="tu@correo.com" required>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="login-password">Contraseña</label>
+          <input type="password" id="login-password" name="password" class="form-control" placeholder="••••••••" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Iniciar Sesión</button>
+      </form>
+      
+      <div class="auth-footer">
+        ¿No tienes cuenta? <a href="#" id="toggle-register">Regístrate gratis</a>
+      </div>
+    </div>
+
+    <div id="register-form-div" style="display: none;">
+      <h2 class="auth-title">Crear Cuenta</h2>
+      <p class="auth-subtitle">Únete a GoWild para descubrir el mundo</p>
+      
+      <form action="/register" method="POST">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="reg-name">Nombre Completo</label>
+          <input type="text" id="reg-name" name="name" class="form-control" placeholder="Juan Pérez" required>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="reg-email">Correo Electrónico</label>
+          <input type="email" id="reg-email" name="email" class="form-control" placeholder="tu@correo.com" required>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="reg-password">Contraseña</label>
+          <input type="password" id="reg-password" name="password" class="form-control" placeholder="Mínimo 6 caracteres" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="reg-role">Tipo de Cuenta</label>
+          <select id="reg-role" name="role" class="form-control" required>
+            <option value="user">Viajero (Quiero reservar tours)</option>
+            <option value="seller">Vendedor / Proveedor (Quiero publicar tours)</option>
+          </select>
+        </div>
+        
+        <button type="submit" class="btn btn-success" style="width: 100%;">Crear Cuenta</button>
+      </form>
+      
+      <div class="auth-footer">
+        ¿Ya tienes cuenta? <a href="#" id="toggle-login">Inicia sesión</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const loginDiv = document.getElementById('login-form-div');
+  const registerDiv = document.getElementById('register-form-div');
+  const toggleRegister = document.getElementById('toggle-register');
+  const toggleLogin = document.getElementById('toggle-login');
+
+  toggleRegister.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginDiv.style.display = 'none';
+    registerDiv.style.display = 'block';
+  });
+
+  toggleLogin.addEventListener('click', (e) => {
+    e.preventDefault();
+    registerDiv.style.display = 'none';
+    loginDiv.style.display = 'block';
+  });
+</script>
+
+<%- include('partials/footer') %>

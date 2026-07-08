@@ -1,0 +1,112 @@
+<%- include('partials/header') %>
+
+<!-- Banner Hero -->
+<section class="hero">
+  <h1>Descubre tu Próxima Aventura</h1>
+  <p>Explora actividades, tours y experiencias increíbles de proveedores verificados de todo el mundo.</p>
+</section>
+
+<!-- Barra de Búsqueda y Filtros -->
+<div class="search-filter-container">
+  <form action="/" method="GET" class="filter-card">
+    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+      <div class="form-group" style="flex: 2; min-width: 250px;">
+        <label for="search">¿Qué quieres hacer?</label>
+        <input type="text" id="search" name="search" class="form-control" placeholder="Buscar actividades, playas, caminatas..." value="<%= filters.search || '' %>">
+      </div>
+      <button type="submit" class="btn btn-primary" style="align-self: flex-end; padding: 0.8rem 1.5rem;">Buscar</button>
+      <a href="/" class="btn btn-secondary" style="align-self: flex-end; padding: 0.8rem 1.5rem;">Limpiar</a>
+    </div>
+
+    <div class="filter-grid">
+      <div class="form-group">
+        <label for="continent">Continente</label>
+        <select id="continent" name="continent" class="form-control">
+          <option value="">Todos</option>
+          <option value="América" <%= filters.continent === 'América' ? 'selected' : '' %>>América</option>
+          <option value="Europa" <%= filters.continent === 'Europa' ? 'selected' : '' %>>Europa</option>
+          <option value="Asia" <%= filters.continent === 'Asia' ? 'selected' : '' %>>Asia</option>
+          <option value="África" <%= filters.continent === 'África' ? 'selected' : '' %>>África</option>
+          <option value="Oceanía" <%= filters.continent === 'Oceanía' ? 'selected' : '' %>>Oceanía</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="country">País</label>
+        <input type="text" id="country" name="country" class="form-control" placeholder="Ej: México" value="<%= filters.country || '' %>">
+      </div>
+
+      <div class="form-group">
+        <label for="city">Ciudad</label>
+        <input type="text" id="city" name="city" class="form-control" placeholder="Ej: Cancún" value="<%= filters.city || '' %>">
+      </div>
+
+      <div class="form-group">
+        <label for="activity">Actividad</label>
+        <input type="text" id="activity" name="activity" class="form-control" placeholder="Ej: Buceo" value="<%= filters.activity || '' %>">
+      </div>
+
+      <div class="form-group">
+        <label for="duration">Duración</label>
+        <input type="text" id="duration" name="duration" class="form-control" placeholder="Ej: 3 horas" value="<%= filters.duration || '' %>">
+      </div>
+
+      <div class="form-group">
+        <label for="difficulty">Dificultad</label>
+        <select id="difficulty" name="difficulty" class="form-control">
+          <option value="">Todas</option>
+          <option value="Fácil" <%= filters.difficulty === 'Fácil' ? 'selected' : '' %>>Fácil</option>
+          <option value="Medio" <%= filters.difficulty === 'Medio' ? 'selected' : '' %>>Medio</option>
+          <option value="Difícil" <%= filters.difficulty === 'Difícil' ? 'selected' : '' %>>Difícil</option>
+        </select>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Listado de Tours -->
+<section style="margin-top: 1rem;">
+  <h2 class="section-title">Actividades Disponibles</h2>
+  
+  <% if (tours.length === 0) { %>
+    <div style="background-color: var(--bg-main); padding: 3rem; text-align: center; border-radius: var(--radius-md); border: 1px solid var(--border); margin-top: 1rem;">
+      <p style="font-size: 1.2rem; color: var(--text-muted); font-weight: 600;">No se encontraron tours con los filtros aplicados.</p>
+    </div>
+  <% } else { %>
+    <div class="tours-grid">
+      <% tours.forEach(tour => { %>
+        <div class="tour-card">
+          <div class="tour-card-img-container">
+            <img src="<%= tour.images[0] || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600' %>" alt="<%= tour.title %>" class="tour-card-img">
+            <span class="tour-badge"><%= tour.city %>, <%= tour.country %></span>
+          </div>
+          
+          <div class="tour-card-content">
+            <div class="tour-card-meta">
+              <span class="meta-tag"><%= tour.continent %></span>
+              <span class="meta-tag"><%= tour.activity %></span>
+              <span class="meta-tag">Dificultad: <%= tour.difficulty %></span>
+              <span class="meta-tag">⌛ <%= tour.duration %></span>
+            </div>
+            
+            <a href="/tour/<%= tour._id %>" class="tour-card-title"><%= tour.title %></a>
+            <p class="tour-card-description"><%= tour.description %></p>
+            
+            <div class="tour-card-footer">
+              <div class="tour-price">
+                $<%= tour.price %> <span>/ persona</span>
+              </div>
+              <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+                <%= tour.spots_available %>/<%= tour.spots_total %> cupos libres
+              </div>
+            </div>
+            
+            <a href="/tour/<%= tour._id %>" class="btn btn-primary" style="margin-top: 1rem; width: 100%;">Ver Detalles y Reservar</a>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<%- include('partials/footer') %>
