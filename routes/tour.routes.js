@@ -15,6 +15,9 @@ router.post('/tour', requireRole(['seller']), upload.array('images', 5), tourCon
 // Editar tour (ruta estática antes de /:id)
 router.post('/tour/editar/:id', requireRole(['seller', 'admin']), upload.array('images', 5), tourController.editTour);
 
+// Finalizar tour
+router.post('/tour/finalizar/:id', requireRole(['seller', 'admin']), tourController.finalizeTour);
+
 // Eliminar tour (ruta estática antes de /:id)
 router.get('/tour/eliminar/:id', requireRole(['seller', 'admin']), tourController.deleteTour);
 

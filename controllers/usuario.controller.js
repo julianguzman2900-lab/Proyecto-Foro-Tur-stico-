@@ -15,11 +15,19 @@ exports.getLogin = (req, res) => {
 };
 
 exports.postRegister = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, country, company_name } = req.body;
 
   if (!name || !email || !password || !role) {
     req.session.error = 'Todos los campos son obligatorios.';
     return res.redirect('/login');
+  }
+
+  // Validación backend para campos adicionales del vendedor
+  if (role === 'seller') {
+    if (!country || !company_name) {
+      req.session.error = 'País de origen y Nombre de la empresa son obligatorios para vendedores.';
+      return res.redirect('/login');
+    }
   }
 
   try {
@@ -33,7 +41,15 @@ exports.postRegister = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
     const status = role === 'seller' ? 'pending' : 'approved';
 
-    await User.create({ name, email, password: hashedPassword, role, status });
+    await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      status,
+      country: role === 'seller' ? country : null,
+      company_name: role === 'seller' ? company_name : null
+    });
 
     req.session.success = role === 'seller'
       ? 'Registro exitoso. Tu cuenta de vendedor está en revisión por el administrador.'
@@ -62,6 +78,12 @@ exports.postLogin = async (req, res) => {
       return res.redirect('/login');
     }
 
+    // Si el usuario se registró con Google y no tiene contraseña, debe usar Google
+    if (!user.password && user.google_id) {
+      req.session.error = 'Esta cuenta utiliza inicio de sesión con Google. Por favor, haz clic en "Continuar con Google".';
+      return res.redirect('/login');
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       req.session.error = 'Credenciales incorrectas.';
@@ -73,7 +95,9 @@ exports.postLogin = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      status: user.status
+      status: user.status,
+      country: user.country,
+      company_name: user.company_name
     };
 
     res.redirect('/');
@@ -98,30 +122,34 @@ exports.createBooking = async (req, res) => {
 
   if (!tour_id || !date || !spots) {
     req.session.error = 'Todos los campos son necesarios para la reserva.';
-    return res.redirect('back');
+    return res.redirect(req.get('Referrer') || '/');
   }
 
   const spotsNum = parseInt(spots);
   if (spotsNum <= 0) {
     req.session.error = 'La cantidad de cupos debe ser mayor a 0.';
-    return res.redirect('back');
+    return res.redirect(req.get('Referrer') || '/');
+  }
+  if (spotsNum > 3) {
+    req.session.error = 'El máximo permitido es de 3 personas por reserva.';
+    return res.redirect(req.get('Referrer') || '/');
   }
 
   try {
     const tour = await Tour.findById(tour_id);
     if (!tour) {
       req.session.error = 'El tour no existe.';
-      return res.redirect('back');
+      return res.redirect(req.get('Referrer') || '/');
     }
 
     if (tour.status !== 'approved') {
       req.session.error = 'Este tour no está disponible para reservas.';
-      return res.redirect('back');
+      return res.redirect(req.get('Referrer') || '/');
     }
 
     if (tour.spots_available < spotsNum) {
       req.session.error = `Lo sentimos, solo quedan ${tour.spots_available} cupos disponibles.`;
-      return res.redirect('back');
+      return res.redirect(req.get('Referrer') || '/');
     }
 
     await Booking.create({ user_id, tour_id, tour_title: tour.title, date, spots: spotsNum });
@@ -134,7 +162,7 @@ exports.createBooking = async (req, res) => {
   } catch (error) {
     console.error(error);
     req.session.error = 'Ocurrió un error al procesar tu reserva. Inténtalo de nuevo.';
-    res.redirect('back');
+    res.redirect(req.get('Referrer') || '/');
   }
 };
 
@@ -248,4 +276,21 @@ exports.responderQueja = async (req, res) => {
     req.session.error = 'Error al registrar la respuesta.';
     res.redirect('/quejas');
   }
+};
+
+exports.handleGoogleCallback = (req, res) => {
+  // Passport ha autenticado y guardado al usuario en req.user
+  if (req.user) {
+    req.session.user = {
+      id: req.user.id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role,
+      status: req.user.status,
+      country: req.user.country,
+      company_name: req.user.company_name,
+      google_id: req.user.google_id
+    };
+  }
+  res.redirect('/');
 };

@@ -1,0 +1,43 @@
+/* Header Specific Styles */
+.logo-icon {
+  color: var(--primary);
+}
+
+.user-name {
+  font-weight: 600;
+}
+
+.btn-logout {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.btn-login {
+  color: white;
+  padding: 0.5rem 1rem;
+}
+
+/* Footer Specific Styles */
+footer {
+  background-color: var(--bg-main);
+  border-top: 1px solid var(--border);
+  padding: 2rem 0;
+  margin-top: auto;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0 2rem;
+}
+
+.footer-tag {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}

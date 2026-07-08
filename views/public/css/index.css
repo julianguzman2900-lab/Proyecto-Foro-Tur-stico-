@@ -1,0 +1,47 @@
+/* Index Specific Styles */
+.search-bar-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-input-group {
+  flex: 2;
+  min-width: 250px;
+}
+
+.btn-search {
+  align-self: flex-end;
+  padding: 0.8rem 1.5rem;
+}
+
+.tours-section {
+  margin-top: 1rem;
+}
+
+.empty-tours-box {
+  background-color: var(--bg-main);
+  padding: 3rem;
+  text-align: center;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  margin-top: 1rem;
+}
+
+.empty-tours-text {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.tour-spots-info {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.btn-view-tour {
+  margin-top: 1rem;
+  width: 100%;
+}

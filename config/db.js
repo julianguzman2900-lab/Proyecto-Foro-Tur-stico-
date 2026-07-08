@@ -17,18 +17,18 @@ const mysqlPool = mysql.createPool({
 async function testMySQL() {
   try {
     const connection = await mysqlPool.getConnection();
-    console.log('✅ Conectado a la base de datos MySQL.');
+    console.log(' Conectado a la base de datos MySQL.');
     connection.release();
   } catch (error) {
-    console.error('❌ Error al conectar a MySQL:', error.message);
+    console.error(' Error al conectar a MySQL:', error.message);
   }
 }
 testMySQL();
 
 // Configuración de MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/foro_turistico')
-  .then(() => console.log('✅ Conectado a la base de datos MongoDB.'))
-  .catch(error => console.error('❌ Error al conectar a MongoDB:', error.message));
+  .then(() => console.log(' Conectado a la base de datos MongoDB.'))
+  .catch(error => console.error(' Error al conectar a MongoDB:', error.message));
 
 module.exports = {
   mysql: mysqlPool,

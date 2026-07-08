@@ -1,0 +1,658 @@
+<%- include('partials/header') %>
+<style>
+  .chat-container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 75vh;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .chat-header {
+    background: var(--primary);
+    color: #fff;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'DM Serif Display', serif;
+  }
+
+  .chat-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  .chat-header p {
+    margin: 0;
+    font-size: 0.85rem;
+    opacity: 0.8;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .messages-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+  }
+
+  .message-bubble {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    max-width: 80%;
+    align-self: flex-start;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    position: relative;
+    transition: all 0.2s ease;
+  }
+
+  .message-bubble.my-message {
+    align-self: flex-end;
+    background: var(--primary-light);
+    border-color: rgba(37,99,235,0.1);
+  }
+
+  .message-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  .message-author {
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .message-badge {
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 0.15rem 0.4rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+
+  .message-badge.admin {
+    background: #ef4444;
+    color: #fff;
+  }
+
+  .message-badge.seller {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  .message-badge.user {
+    background: var(--text-muted);
+    color: #fff;
+  }
+
+  .message-time {
+    color: var(--text-light);
+    font-size: 0.75rem;
+    margin-left: auto;
+  }
+
+  .reply-banner-content {
+    background: #e2e8f0;
+    border-left: 3px solid var(--primary);
+    padding: 0.25rem 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .message-text {
+    font-size: 0.95rem;
+    color: var(--text-main);
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .message-text .mention {
+    color: var(--primary);
+    font-weight: bold;
+    background: rgba(37,99,235,0.1);
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+  }
+
+  .message-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    justify-content: flex-end;
+  }
+
+  .message-actions a {
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .message-actions a:hover {
+    color: var(--primary);
+  }
+
+  .message-actions a.delete-action:hover {
+    color: #ef4444;
+  }
+
+  .new-messages-indicator {
+    position: absolute;
+    bottom: 5.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    display: none;
+    z-index: 10;
+  }
+
+  .chat-input-area {
+    padding: 1.25rem 1.5rem;
+    background: #fff;
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+
+  .reply-indicator {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    background: #f1f5f9;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    border-left: 4px solid var(--primary);
+  }
+
+  .reply-indicator button {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 1.1rem;
+  }
+
+  .input-wrapper {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .chat-input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    font-family: 'Outfit', sans-serif;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .chat-input:focus {
+    border-color: var(--primary);
+  }
+
+  .btn-send {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 0 1.5rem;
+    font-weight: bold;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .btn-send:hover {
+    opacity: 0.9;
+  }
+
+  /* Mentions suggestions list */
+  .suggestions-list {
+    position: absolute;
+    bottom: 100%;
+    left: 1.5rem;
+    right: 1.5rem;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    max-height: 150px;
+    overflow-y: auto;
+    display: none;
+    z-index: 100;
+  }
+
+  .suggestion-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.15s ease;
+  }
+
+  .suggestion-item:hover, .suggestion-item.selected {
+    background: #f1f5f9;
+  }
+
+  .suggestion-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-main);
+  }
+
+  .suggestion-role {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+</style>
+
+<div class="chat-container">
+  <div class="chat-header">
+    <div>
+      <h2>Chat en Vivo</h2>
+      <p>Espacio público de interacción y sugerencias turísticas</p>
+    </div>
+    <div>
+      <span style="font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 0.25rem 0.5rem; border-radius: 4px;">
+        Usuario: <%= user.name %>
+      </span>
+    </div>
+  </div>
+
+  <div class="messages-area" id="messagesArea">
+    <% messages.forEach(msg => { %>
+      <div class="message-bubble <%= msg.user_id === user.id ? 'my-message' : '' %>" id="msg-<%= msg._id %>" data-user="<%= msg.user_name %>">
+        <div class="message-header">
+          <span class="message-author"><%= msg.user_name %></span>
+          <span class="message-badge <%= msg.user_role %>">
+            <%= msg.user_role === 'admin' ? 'Admin' : (msg.user_role === 'seller' ? 'Proveedor' : 'Viajero') %>
+          </span>
+          <span class="message-time"><%= new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %></span>
+        </div>
+
+        <% if (msg.reply_to_name) { %>
+          <div class="reply-banner-content">
+            Respondiendo a <strong>@<%= msg.reply_to_name %></strong>
+          </div>
+        <% } %>
+
+        <div class="message-text">
+          <% 
+            let renderedText = msg.message;
+            // Resaltar menciones
+            if (msg.mentions && msg.mentions.length > 0) {
+              msg.mentions.forEach(m => {
+                const escapedM = m.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                const regex = new RegExp(`@${escapedM}`, 'g');
+                renderedText = renderedText.replace(regex, `<span class="mention">@${m}</span>`);
+              });
+            }
+          %>
+          <%- renderedText %>
+          <% if (msg.is_edited) { %>
+            <small style="color: var(--text-light); font-size: 0.7rem; font-style: italic; margin-left: 0.25rem;">(editado)</small>
+          <% } %>
+        </div>
+
+        <div class="message-actions">
+          <a onclick="setReply('<%= msg._id %>', '<%= msg.user_name %>')">Responder</a>
+          <% if (msg.user_id === user.id) { %>
+            <a onclick="setEdit('<%= msg._id %>', '<%= msg.message.replace(/'/g, "\\'") %>')">Editar</a>
+          <% } %>
+          <% if (msg.user_id === user.id || user.role === 'admin') { %>
+            <a class="delete-action" onclick="deleteMessage('<%= msg._id %>')">Eliminar</a>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="new-messages-indicator" id="newMessagesIndicator" onclick="scrollToBottom()">
+    Nuevos mensajes abajo ↓
+  </div>
+
+  <div class="chat-input-area">
+    <!-- Indicador de respuesta -->
+    <div class="reply-indicator" id="replyIndicator">
+      <span id="replyIndicatorText">Respondiendo a ...</span>
+      <button onclick="cancelReply()">×</button>
+    </div>
+
+    <!-- Sugerencias de menciones -->
+    <div class="suggestions-list" id="suggestionsList"></div>
+
+    <form id="chatForm" onsubmit="handleFormSubmit(event)">
+      <div class="input-wrapper">
+        <input type="text" id="chatInput" class="chat-input" placeholder="Escribe un mensaje... Usa @ para mencionar usuarios" autocomplete="off" oninput="handleInput(event)">
+        <button type="submit" class="btn-send">Enviar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const currentUserId = <%= user.id %>;
+  const currentUserName = "<%= user.name %>";
+  const usersList = <%- JSON.stringify(usersList) %>;
+  
+  const messagesArea = document.getElementById('messagesArea');
+  const chatInput = document.getElementById('chatInput');
+  const replyIndicator = document.getElementById('replyIndicator');
+  const replyIndicatorText = document.getElementById('replyIndicatorText');
+  const suggestionsList = document.getElementById('suggestionsList');
+  const newMessagesIndicator = document.getElementById('newMessagesIndicator');
+
+  let activeReplyId = null;
+  let activeReplyName = null;
+  let activeEditId = null;
+  let isNearBottom = true;
+  let lastMessageId = null;
+
+  // Auto scroll to bottom initially
+  scrollToBottom();
+
+  // Detect scroll to hide/show new messages indicator
+  messagesArea.addEventListener('scroll', () => {
+    const threshold = 100;
+    isNearBottom = messagesArea.scrollHeight - messagesArea.scrollTop - messagesArea.clientHeight < threshold;
+    if (isNearBottom) {
+      newMessagesIndicator.style.display = 'none';
+    }
+  });
+
+  function scrollToBottom() {
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+    newMessagesIndicator.style.display = 'none';
+  }
+
+  function setReply(msgId, userName) {
+    activeEditId = null;
+    activeReplyId = msgId;
+    activeReplyName = userName;
+    replyIndicatorText.innerHTML = `Respondiendo a <strong>@${userName}</strong>`;
+    replyIndicator.style.display = 'flex';
+    chatInput.placeholder = `Respuesta a @${userName}...`;
+    chatInput.focus();
+  }
+
+  function cancelReply() {
+    activeReplyId = null;
+    activeReplyName = null;
+    activeEditId = null;
+    replyIndicator.style.display = 'none';
+    chatInput.placeholder = "Escribe un mensaje... Usa @ para mencionar usuarios";
+    chatInput.value = "";
+  }
+
+  function setEdit(msgId, messageText) {
+    activeReplyId = null;
+    activeReplyName = null;
+    activeEditId = msgId;
+    replyIndicatorText.innerHTML = `Editando mensaje...`;
+    replyIndicator.style.display = 'flex';
+    chatInput.placeholder = "Editar mensaje...";
+    chatInput.value = messageText;
+    chatInput.focus();
+  }
+
+  async function handleFormSubmit(e) {
+    e.preventDefault();
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    if (activeEditId) {
+      // Editar
+      try {
+        const response = await fetch(`/api/chat/message/${activeEditId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
+        });
+        const data = await response.json();
+        if (data.success) {
+          cancelReply();
+          fetchMessages();
+        } else {
+          alert(data.error);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      // Crear
+      try {
+        const response = await fetch('/api/chat/message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            reply_to: activeReplyId,
+            reply_to_name: activeReplyName
+          })
+        });
+        const data = await response.json();
+        if (data.success) {
+          cancelReply();
+          fetchMessages();
+        } else {
+          alert(data.error);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+
+  async function deleteMessage(msgId) {
+    if (!confirm('¿Estás seguro de que deseas eliminar este mensaje?')) return;
+    try {
+      const response = await fetch(`/api/chat/message/${msgId}`, { method: 'DELETE' });
+      const data = await response.json();
+      if (data.success) {
+        fetchMessages();
+      } else {
+        alert(data.error);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // SUGERENCIA DE MENCIONES
+  let selectedSuggestionIndex = -1;
+
+  function handleInput(e) {
+    const value = e.target.value;
+    const cursor = e.target.selectionStart;
+    
+    // Encontrar la palabra donde se encuentra el cursor
+    const textBeforeCursor = value.substring(0, cursor);
+    const words = textBeforeCursor.split(/\s/);
+    const lastWord = words[words.length - 1];
+
+    if (lastWord.startsWith('@')) {
+      const query = lastWord.substring(1).toLowerCase();
+      showSuggestions(query);
+    } else {
+      hideSuggestions();
+    }
+  }
+
+  function showSuggestions(query) {
+    // Filtrar usuarios
+    const matches = usersList.filter(u => u.name.toLowerCase().includes(query) && u.name !== currentUserName);
+    
+    if (matches.length === 0) {
+      hideSuggestions();
+      return;
+    }
+
+    suggestionsList.innerHTML = "";
+    matches.slice(0, 5).forEach((user, index) => {
+      const div = document.createElement('div');
+      div.className = 'suggestion-item';
+      if (index === selectedSuggestionIndex) div.className += ' selected';
+      div.innerHTML = `
+        <span class="suggestion-name">${user.name}</span>
+        <span class="suggestion-role">${user.role === 'admin' ? 'Admin' : (user.role === 'seller' ? 'Proveedor' : 'Viajero')}</span>
+      `;
+      div.onclick = () => selectMention(user.name);
+      suggestionsList.appendChild(div);
+    });
+
+    suggestionsList.style.display = 'block';
+  }
+
+  function selectMention(userName) {
+    const value = chatInput.value;
+    const cursor = chatInput.selectionStart;
+    const textBeforeCursor = value.substring(0, cursor);
+    const textAfterCursor = value.substring(cursor);
+
+    const words = textBeforeCursor.split(/\s/);
+    words[words.length - 1] = `@${userName} `;
+    
+    chatInput.value = words.join(' ') + textAfterCursor;
+    hideSuggestions();
+    chatInput.focus();
+  }
+
+  function hideSuggestions() {
+    suggestionsList.style.display = 'none';
+    selectedSuggestionIndex = -1;
+  }
+
+  // POLLING DE MENSAJES
+  async function fetchMessages() {
+    try {
+      const response = await fetch('/api/chat/messages');
+      const data = await response.json();
+      if (data.success) {
+        const messages = data.messages;
+        
+        let hasNewMessages = false;
+        if (messages.length > 0) {
+          const newestMessage = messages[messages.length - 1];
+          if (lastMessageId && lastMessageId !== newestMessage._id) {
+            hasNewMessages = true;
+            // Notificar si hay mención hacia mí
+            if (newestMessage.mentions && newestMessage.mentions.includes(currentUserName)) {
+              if (Notification.permission === 'granted') {
+                new Notification('Has sido mencionado en el chat', {
+                  body: `${newestMessage.user_name}: ${newestMessage.message}`
+                });
+              }
+            }
+          }
+          lastMessageId = newestMessage._id;
+        }
+
+        // Renderizar mensajes
+        renderMessages(messages);
+
+        if (hasNewMessages) {
+          if (isNearBottom) {
+            scrollToBottom();
+          } else {
+            newMessagesIndicator.style.display = 'block';
+          }
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function renderMessages(messages) {
+    messagesArea.innerHTML = "";
+    messages.forEach(msg => {
+      const div = document.createElement('div');
+      div.className = `message-bubble ${msg.user_id === currentUserId ? 'my-message' : ''}`;
+      div.id = `msg-${msg._id}`;
+      
+      let renderedText = msg.message;
+      if (msg.mentions && msg.mentions.length > 0) {
+        msg.mentions.forEach(m => {
+          const regex = new RegExp(`@${m}`, 'g');
+          renderedText = renderedText.replace(regex, `<span class="mention">@${m}</span>`);
+        });
+      }
+
+      const replyBanner = msg.reply_to_name ? `
+        <div class="reply-banner-content">
+          Respondiendo a <strong>@${msg.reply_to_name}</strong>
+        </div>
+      ` : '';
+
+      const editLabel = msg.is_edited ? `
+        <small style="color: var(--text-light); font-size: 0.7rem; font-style: italic; margin-left: 0.25rem;">(editado)</small>
+      ` : '';
+
+      const actions = `
+        <div class="message-actions">
+          <a onclick="setReply('${msg._id}', '${msg.user_name}')">Responder</a>
+          ${msg.user_id === currentUserId ? `<a onclick="setEdit('${msg._id}', '${msg.message.replace(/'/g, "\\'")}')">Editar</a>` : ''}
+          ${msg.user_id === currentUserId || <%= user.role === 'admin' %> ? `<a class="delete-action" onclick="deleteMessage('${msg._id}')">Eliminar</a>` : ''}
+        </div>
+      `;
+
+      div.innerHTML = `
+        <div class="message-header">
+          <span class="message-author">${msg.user_name}</span>
+          <span class="message-badge ${msg.user_role}">${msg.user_role === 'admin' ? 'Admin' : (msg.user_role === 'seller' ? 'Proveedor' : 'Viajero')}</span>
+          <span class="message-time">${new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+        </div>
+        ${replyBanner}
+        <div class="message-text">
+          ${renderedText}
+          ${editLabel}
+        </div>
+        ${actions}
+      `;
+
+      messagesArea.appendChild(div);
+    });
+  }
+
+  // Solicitar permiso de notificaciones del navegador
+  if (Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+
+  // Polling cada 3 segundos
+  setInterval(fetchMessages, 3000);
+</script>
+
+<%- include('partials/footer') %>

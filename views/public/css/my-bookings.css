@@ -1,0 +1,56 @@
+/* My Bookings Specific Styles */
+.calendar-view {
+  margin-top: 1.5rem;
+}
+
+.bookings-info-text {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+
+.empty-bookings-box {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--text-muted);
+}
+
+.empty-bookings-text {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.bookings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.booking-item-detail {
+  margin-top: 0.25rem;
+}
+
+.booking-item-total {
+  margin-top: 0.25rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.btn-booking {
+  font-size: 0.85rem;
+  padding: 0.6rem 1rem;
+}
+
+.btn-gmaps {
+  background-color: #4285F4;
+}
+
+.btn-waze {
+  background-color: #33CCFF;
+}
+
+.booking-cancelled-text {
+  font-size: 0.85rem;
+  color: var(--danger);
+  font-weight: 700;
+}

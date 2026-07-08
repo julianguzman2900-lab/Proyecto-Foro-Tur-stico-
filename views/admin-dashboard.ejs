@@ -1,11 +1,12 @@
 <%- include('partials/header') %>
+<link rel="stylesheet" href="/css/admin-dashboard.css">
 
 <div class="dashboard-grid">
   <!-- Sidebar -->
   <aside class="dashboard-sidebar">
-    <div style="text-align: center; margin-bottom: 2rem;">
-      <h3 style="font-weight: 800; font-size: 1.2rem;"><%= user.name %></h3>
-      <p style="font-size: 0.8rem; color: var(--danger); font-weight: 700;">ADMINISTRADOR</p>
+    <div class="sidebar-profile">
+      <h3><%= user.name %></h3>
+      <p class="role-label">ADMINISTRADOR</p>
     </div>
     
     <ul class="dashboard-menu">
@@ -23,23 +24,23 @@
         <div class="stat-label">Proveedores Registrados</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" style="color: var(--warning);"><%= stats.sellersPending %></div>
+        <div class="stat-num warning"><%= stats.sellersPending %></div>
         <div class="stat-label">Proveedores Pendientes</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" style="color: var(--primary);"><%= stats.toursTotal %></div>
+        <div class="stat-num primary"><%= stats.toursTotal %></div>
         <div class="stat-label">Publicaciones en MongoDB</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num" style="color: var(--warning);"><%= stats.toursPending %></div>
+        <div class="stat-num warning"><%= stats.toursPending %></div>
         <div class="stat-label">Tours por Auditar</div>
       </div>
     </div>
 
     <!-- Tabla 1: Auditoría de Vendedores (MySQL) -->
     <section class="table-container">
-      <div style="padding: 1.5rem; border-bottom: 1px solid var(--border);">
-        <h3 style="font-weight: 800; font-size: 1.2rem;">Auditoría de Cuentas de Vendedores</h3>
+      <div class="table-header">
+        <h3>Auditoría de Cuentas de Vendedores</h3>
       </div>
       <table>
         <thead>
@@ -54,7 +55,7 @@
         <tbody>
           <% if (sellers.length === 0) { %>
             <tr>
-              <td colspan="5" style="text-align: center; color: var(--text-light); padding: 2rem;">No hay vendedores registrados.</td>
+              <td colspan="5" class="empty-table-state">No hay vendedores registrados.</td>
             </tr>
           <% } else { %>
             <% sellers.forEach(seller => { %>
@@ -72,16 +73,18 @@
                   <% } %>
                 </td>
                 <td>
-                  <div style="display: flex; gap: 0.5rem;">
-                    <% if (seller.status !== 'approved') { %>
+                  <div class="action-buttons">
+                    <% if (seller.status === 'pending') { %>
                       <form action="/admin/vendedor/auditar" method="POST" style="display: inline;">
                         <input type="hidden" name="seller_id" value="<%= seller.id %>">
                         <input type="hidden" name="action" value="approve">
-                        <button type="submit" class="btn btn-success" style="padding: 0.35rem 0.6rem; font-size: 0.8rem;">Aprobar</button>
+                        <button type="submit" class="btn btn-success btn-sm">Aprobar</button>
                       </form>
-                    <% } %>
-                    <% if (seller.status !== 'rejected') { %>
-                      <button class="btn btn-danger" style="padding: 0.35rem 0.6rem; font-size: 0.8rem;" onclick="openRejectSellerModal('<%= seller.id %>')">Rechazar</button>
+                      <button class="btn btn-danger btn-sm" onclick="openRejectSellerModal('<%= seller.id %>')">Rechazar</button>
+                    <% } else if (seller.status === 'approved') { %>
+                      <span style="font-size: 0.85rem; color: var(--success); font-weight: bold;">Cuenta aprobada</span>
+                    <% } else if (seller.status === 'rejected') { %>
+                      <span style="font-size: 0.85rem; color: var(--danger); font-weight: bold;">Cuenta rechazada</span>
                     <% } %>
                   </div>
                 </td>
@@ -94,8 +97,8 @@
 
     <!-- Tabla 2: Auditoría de Publicaciones (MongoDB) -->
     <section class="table-container">
-      <div style="padding: 1.5rem; border-bottom: 1px solid var(--border);">
-        <h3 style="font-weight: 800; font-size: 1.2rem;">Auditoría de Publicaciones del Foro</h3>
+      <div class="table-header">
+        <h3>Auditoría de Publicaciones del Foro</h3>
       </div>
       <table>
         <thead>
@@ -110,17 +113,17 @@
         <tbody>
           <% if (tours.length === 0) { %>
             <tr>
-              <td colspan="5" style="text-align: center; color: var(--text-light); padding: 2rem;">No hay publicaciones en el foro.</td>
+              <td colspan="5" class="empty-table-state">No hay publicaciones en el foro.</td>
             </tr>
           <% } else { %>
             <% tours.forEach(tour => { %>
               <tr>
                 <td>
-                  <img src="<%= tour.images[0] || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=150' %>" alt="" style="width: 50px; height: 50px; object-fit: cover; border-radius: var(--radius-sm);">
+                  <img src="<%= tour.images[0] || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=150' %>" alt="" class="tour-thumbnail">
                 </td>
                 <td>
-                  <a href="/tour/<%= tour._id %>" style="font-weight: 700; text-decoration: none; color: var(--text-main);"><%= tour.title %></a>
-                  <div style="font-size: 0.8rem; color: var(--text-muted);"><%= tour.city %>, <%= tour.country %></div>
+                  <a href="/tour/<%= tour._id %>" class="tour-title-link"><%= tour.title %></a>
+                  <div class="tour-location-sub"><%= tour.city %>, <%= tour.country %></div>
                 </td>
                 <td><%= tour.seller_name %></td>
                 <td>
@@ -133,18 +136,20 @@
                   <% } %>
                 </td>
                 <td>
-                  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <% if (tour.status !== 'approved') { %>
+                  <div class="action-buttons">
+                    <% if (tour.status === 'pending') { %>
                       <form action="/admin/tour/auditar" method="POST" style="display: inline;">
                         <input type="hidden" name="tour_id" value="<%= tour._id %>">
                         <input type="hidden" name="action" value="approve">
-                        <button type="submit" class="btn btn-success" style="padding: 0.35rem 0.6rem; font-size: 0.8rem;">Aprobar</button>
+                        <button type="submit" class="btn btn-success btn-sm">Aprobar</button>
                       </form>
+                      <button class="btn btn-danger btn-sm" onclick="openRejectTourModal('<%= tour._id %>')">Rechazar</button>
+                    <% } else if (tour.status === 'approved') { %>
+                      <span style="font-size: 0.85rem; color: var(--success); font-weight: bold;">Publicación aprobada</span>
+                    <% } else if (tour.status === 'rejected') { %>
+                      <span style="font-size: 0.85rem; color: var(--danger); font-weight: bold;">Publicación rechazada</span>
                     <% } %>
-                    <% if (tour.status !== 'rejected') { %>
-                      <button class="btn btn-danger" style="padding: 0.35rem 0.6rem; font-size: 0.8rem;" onclick="openRejectTourModal('<%= tour._id %>')">Rechazar</button>
-                    <% } %>
-                    <a href="/tour/eliminar/<%= tour._id %>" class="btn btn-danger" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; background-color: var(--text-muted);" onclick="return confirm('¿Estás seguro de que deseas ELIMINAR esta publicación del foro permanentemente?')">Eliminar</a>
+                    <a href="/tour/eliminar/<%= tour._id %>" class="btn btn-danger btn-sm btn-muted" onclick="return confirm('¿Estás seguro de que deseas ELIMINAR esta publicación del foro permanentemente?')">Eliminar</a>
                   </div>
                 </td>
               </tr>
@@ -159,17 +164,17 @@
 <!-- Modal para Rechazar Vendedor -->
 <div id="reject-seller-modal" class="modal-overlay" style="display: none;">
   <div class="modal-content" onclick="event.stopPropagation()">
-    <h3 style="margin-bottom: 1.25rem;">Rechazar Vendedor</h3>
+    <h3 class="modal-header-margin">Rechazar Vendedor</h3>
     <form action="/admin/vendedor/auditar" method="POST">
       <input type="hidden" id="reject-seller-id" name="seller_id" value="">
       <input type="hidden" name="action" value="reject">
       
-      <div class="form-group" style="margin-bottom: 1.5rem;">
+      <div class="form-group form-group-margin">
         <label for="reject-seller-reason">Motivo de Rechazo (Campo obligatorio)</label>
         <textarea id="reject-seller-reason" name="rejection_reason" rows="4" class="form-control" placeholder="Escribe el motivo del porqué del rechazo de esta cuenta..." required></textarea>
       </div>
 
-      <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+      <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="closeRejectSellerModal()">Cancelar</button>
         <button type="submit" class="btn btn-danger">Rechazar Cuenta</button>
       </div>
@@ -180,17 +185,17 @@
 <!-- Modal para Rechazar Publicación de Tour -->
 <div id="reject-tour-modal" class="modal-overlay" style="display: none;">
   <div class="modal-content" onclick="event.stopPropagation()">
-    <h3 style="margin-bottom: 1.25rem;">Rechazar Publicación de Tour</h3>
+    <h3 class="modal-header-margin">Rechazar Publicación de Tour</h3>
     <form action="/admin/tour/auditar" method="POST">
       <input type="hidden" id="reject-tour-id" name="tour_id" value="">
       <input type="hidden" name="action" value="reject">
       
-      <div class="form-group" style="margin-bottom: 1.5rem;">
+      <div class="form-group form-group-margin">
         <label for="reject-tour-reason">Motivo de Rechazo (Campo obligatorio)</label>
         <textarea id="reject-tour-reason" name="rejection_reason" rows="4" class="form-control" placeholder="Escribe el porqué del rechazo de esta publicación..." required></textarea>
       </div>
 
-      <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+      <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="closeRejectTourModal()">Cancelar</button>
         <button type="submit" class="btn btn-danger">Rechazar Publicación</button>
       </div>

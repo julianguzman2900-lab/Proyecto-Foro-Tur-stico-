@@ -9,6 +9,12 @@ router.post('/register', usuarioController.postRegister);
 router.post('/login', usuarioController.postLogin);
 router.get('/logout', usuarioController.logout);
 
+const passport = require('passport');
+
+// Google OAuth
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), usuarioController.handleGoogleCallback);
+
 // Reservas
 router.post('/reservar', requireRole(['user']), usuarioController.createBooking);
 router.get('/mis-reservas', requireRole(['user']), usuarioController.getMisReservas);

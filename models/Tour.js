@@ -16,9 +16,29 @@ const TourSchema = new mongoose.Schema({
   spots_available: { type: Number, required: true },
   images: [{ type: String }],
   contact_info: { type: String, required: true },
-  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  start_address: { type: String, required: true },
+  coordinates: { type: String, default: '' },
+  activity_date: { 
+    type: Date, 
+    required: true, 
+    default: () => {
+      const d = new Date();
+      d.setDate(d.getDate() + 30);
+      return d;
+    }
+  },
+  status: { type: String, enum: ['pending', 'approved', 'rejected', 'finished'], default: 'pending' },
   rejection_reason: { type: String, default: '' },
   created_at: { type: Date, default: Date.now }
+});
+
+TourSchema.pre('validate', function(next) {
+  if (!this.activity_date || isNaN(new Date(this.activity_date).getTime())) {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    this.activity_date = d;
+  }
+  next();
 });
 
 module.exports = mongoose.model('Tour', TourSchema);

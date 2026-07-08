@@ -1,4 +1,5 @@
 <%- include('partials/header') %>
+<link rel="stylesheet" href="/css/index.css">
 
 <!-- Banner Hero -->
 <section class="hero">
@@ -9,13 +10,13 @@
 <!-- Barra de Búsqueda y Filtros -->
 <div class="search-filter-container">
   <form action="/" method="GET" class="filter-card">
-    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-      <div class="form-group" style="flex: 2; min-width: 250px;">
+    <div class="search-bar-row">
+      <div class="form-group search-input-group">
         <label for="search">¿Qué quieres hacer?</label>
         <input type="text" id="search" name="search" class="form-control" placeholder="Buscar actividades, playas, caminatas..." value="<%= filters.search || '' %>">
       </div>
-      <button type="submit" class="btn btn-primary" style="align-self: flex-end; padding: 0.8rem 1.5rem;">Buscar</button>
-      <a href="/" class="btn btn-secondary" style="align-self: flex-end; padding: 0.8rem 1.5rem;">Limpiar</a>
+      <button type="submit" class="btn btn-primary btn-search">Buscar</button>
+      <a href="/" class="btn btn-secondary btn-search">Limpiar</a>
     </div>
 
     <div class="filter-grid">
@@ -65,12 +66,12 @@
 </div>
 
 <!-- Listado de Tours -->
-<section style="margin-top: 1rem;">
+<section class="tours-section">
   <h2 class="section-title">Actividades Disponibles</h2>
   
   <% if (tours.length === 0) { %>
-    <div style="background-color: var(--bg-main); padding: 3rem; text-align: center; border-radius: var(--radius-md); border: 1px solid var(--border); margin-top: 1rem;">
-      <p style="font-size: 1.2rem; color: var(--text-muted); font-weight: 600;">No se encontraron tours con los filtros aplicados.</p>
+    <div class="empty-tours-box">
+      <p class="empty-tours-text">No se encontraron tours con los filtros aplicados.</p>
     </div>
   <% } else { %>
     <div class="tours-grid">
@@ -86,7 +87,7 @@
               <span class="meta-tag"><%= tour.continent %></span>
               <span class="meta-tag"><%= tour.activity %></span>
               <span class="meta-tag">Dificultad: <%= tour.difficulty %></span>
-              <span class="meta-tag">⌛ <%= tour.duration %></span>
+              <span class="meta-tag">Duración: <%= tour.duration %></span>
             </div>
             
             <a href="/tour/<%= tour._id %>" class="tour-card-title"><%= tour.title %></a>
@@ -96,12 +97,12 @@
               <div class="tour-price">
                 $<%= tour.price %> <span>/ persona</span>
               </div>
-              <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+              <div class="tour-spots-info">
                 <%= tour.spots_available %>/<%= tour.spots_total %> cupos libres
               </div>
             </div>
             
-            <a href="/tour/<%= tour._id %>" class="btn btn-primary" style="margin-top: 1rem; width: 100%;">Ver Detalles y Reservar</a>
+            <a href="/tour/<%= tour._id %>" class="btn btn-primary btn-view-tour">Ver Detalles y Reservar</a>
           </div>
         </div>
       <% }) %>

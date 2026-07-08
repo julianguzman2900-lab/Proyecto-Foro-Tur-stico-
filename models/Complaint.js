@@ -24,7 +24,7 @@ class Complaint {
 
   static async create({ user_id, subject, message }) {
     const [result] = await db.mysql.query(
-      'INSERT INTO complaints (user_id, subject, message, status) VALUES (?, ?, ?, "pending")',
+      'INSERT INTO `complaints` (`user_id`, `subject`, `message`, `status`) VALUES (?, ?, ?, "pending")',
       [user_id, subject, message]
     );
     return result.insertId;
@@ -32,7 +32,7 @@ class Complaint {
 
   static async updateReply(id, reply, replied_by) {
     const [result] = await db.mysql.query(
-      'UPDATE complaints SET reply = ?, status = "answered", replied_by = ? WHERE id = ?',
+      'UPDATE `complaints` SET `reply` = ?, `status` = "answered", `replied_by` = ? WHERE `id` = ?',
       [reply, replied_by, id]
     );
     return result.affectedRows > 0;

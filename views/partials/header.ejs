@@ -3,20 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GoWild - Foro Turístico & Reservas</title>
+  <title>La guía del viajero - Foro Turístico & Reservas</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/common.css">
 </head>
 <body>
   <header>
     <nav class="navbar">
-      <a href="/" class="logo">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-        GoWild
+      <a href="/" class="logo" style="font-family: 'DM Serif Display', serif; font-size: 1.6rem; letter-spacing: 0.5px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="logo-icon"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        La guía del viajero
       </a>
       <ul class="nav-links">
         <li><a href="/" id="nav-home">Inicio</a></li>
         
         <% if (user) { %>
+          <li><a href="/chat" id="nav-chat">Chat en Vivo</a></li>
           <li><a href="/quejas" id="nav-complaints">Quejas & Sugerencias</a></li>
           
           <% if (user.role === 'admin') { %>
@@ -29,11 +32,11 @@
           
           <div class="user-info">
             <span class="user-tag <%= user.role %>"><%= user.role === 'admin' ? 'Administrador' : (user.role === 'seller' ? 'Proveedor' : 'Viajero') %></span>
-            <span style="font-weight: 600;"><%= user.name %></span>
-            <li><a href="/logout" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; color: var(--text-main);">Salir</a></li>
+            <span class="user-name"><%= user.name %></span>
+            <li><a href="/logout" class="btn btn-secondary btn-logout">Salir</a></li>
           </div>
         <% } else { %>
-          <li><a href="/login" class="btn btn-primary" style="color: white; padding: 0.5rem 1rem;">Iniciar Sesión / Registro</a></li>
+          <li><a href="/login" class="btn btn-primary btn-login">Iniciar Sesión / Registro</a></li>
         <% } %>
       </ul>
     </nav>
@@ -46,3 +49,18 @@
     <% if (success) { %>
       <div class="alert alert-success" id="alert-success"><%= success %></div>
     <% } %>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+          setTimeout(() => {
+            alert.style.opacity = '0';
+            alert.style.transition = 'opacity 0.5s ease-out';
+            setTimeout(() => {
+              alert.style.display = 'none';
+            }, 500);
+          }, 3000);
+        });
+      });
+    </script>

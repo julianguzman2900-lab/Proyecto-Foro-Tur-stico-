@@ -1,0 +1,121 @@
+/* Complaints Specific Styles */
+.complaints-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.complaints-info-text {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-mode-box {
+  background-color: var(--bg-main);
+  border: 1px solid var(--border);
+  padding: 2rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.admin-mode-title {
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
+.admin-mode-desc {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.messages-list {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.empty-messages {
+  text-align: center;
+  color: var(--text-light);
+  font-style: italic;
+  padding: 3rem 0;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.message-subject {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.badge-sm {
+  font-size: 0.7rem;
+}
+
+.message-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.message-body {
+  font-size: 0.95rem;
+  color: var(--text-main);
+  white-space: pre-wrap;
+  margin-bottom: 1rem;
+}
+
+.reply-box {
+  background-color: var(--bg-sec);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  margin-top: 1rem;
+  border-left: 3px solid var(--success);
+}
+
+.reply-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--success);
+  display: block;
+  text-transform: uppercase;
+}
+
+.reply-body {
+  font-size: 0.9rem;
+  color: var(--text-main);
+  margin-top: 0.25rem;
+  white-space: pre-wrap;
+}
+
+.reply-form {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border);
+}
+
+.reply-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.btn-reply {
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+}
+
+.card-pending {
+  border-left: 4px solid var(--warning);
+}
+
+.card-approved {
+  border-left: 4px solid var(--success);
+}

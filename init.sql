@@ -7,10 +7,13 @@ CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
   email VARCHAR(100) NOT NULL UNIQUE,
-  password VARCHAR(255) NOT NULL,
+  password VARCHAR(255) DEFAULT NULL,
   role ENUM('admin', 'seller', 'user') NOT NULL DEFAULT 'user',
   status ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'approved',
   rejection_reason TEXT DEFAULT NULL,
+  country VARCHAR(100) DEFAULT NULL,
+  company_name VARCHAR(200) DEFAULT NULL,
+  google_id VARCHAR(255) DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -40,7 +43,7 @@ CREATE TABLE IF NOT EXISTS complaints (
 );
 
 -- Insertar usuario Administrador por defecto (Contraseña: admin123)
--- Hash bcrypt generado para admin123: $2a$10$gR7LgQ6uK4M8D9H4g9I9uO5bTfN5a2h8l7d8k9m0o1p2q3r4s5t6u
+-- Hash bcrypt generado para admin123: $2a$10$.l1cISEkMmObeNt3DcVUduqCEqfRLQo9iG9jVwzWckm5DPFCIBmN.
 INSERT INTO users (name, email, password, role, status)
-VALUES ('Administrador Foro', 'admin@foro.com', '$2a$10$gR7LgQ6uK4M8D9H4g9I9uO5bTfN5a2h8l7d8k9m0o1p2q3r4s5t6u', 'admin', 'approved')
+VALUES ('Administrador Foro', 'admin@foro.com', '$2a$10$.l1cISEkMmObeNt3DcVUduqCEqfRLQo9iG9jVwzWckm5DPFCIBmN.', 'admin', 'approved')
 ON DUPLICATE KEY UPDATE id=id;

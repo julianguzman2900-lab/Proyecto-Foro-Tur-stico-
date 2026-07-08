@@ -1,14 +1,15 @@
 <%- include('partials/header') %>
+<link rel="stylesheet" href="/css/complaints.css">
 
 <h2 class="section-title">Buzón de Quejas y Sugerencias</h2>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem;">
+<div class="complaints-grid">
   <!-- Formulario de Envío (Solo para viajeros) -->
   <div>
     <% if (user.role === 'user') { %>
       <div class="detail-section">
         <h3 style="font-weight: 800; margin-bottom: 1rem;">Enviar Nueva Sugerencia / Queja</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+        <p class="complaints-info-text">
           Tus sugerencias nos ayudan a mejorar la plataforma. Los proveedores y administradores podrán leer tu mensaje y responderte directamente aquí.
         </p>
         
@@ -27,9 +28,9 @@
         </form>
       </div>
     <% } else { %>
-      <div style="background-color: var(--bg-main); border: 1px solid var(--border); padding: 2rem; border-radius: var(--radius-md); text-align: center;">
-        <h3 style="font-weight: 800; color: var(--primary); margin-bottom: 0.5rem;">Modo de Gestión de Quejas</h3>
-        <p style="color: var(--text-muted); font-size: 0.95rem;">
+      <div class="admin-mode-box">
+        <h3 class="admin-mode-title">Modo de Gestión de Quejas</h3>
+        <p class="admin-mode-desc">
           Como <%= user.role === 'admin' ? 'Administrador' : 'Proveedor' %>, puedes ver todos los mensajes enviados por los viajeros y responderlos directamente para resolver sus dudas o comentarios.
         </p>
       </div>
@@ -37,41 +38,41 @@
   </div>
 
   <!-- Listado de Mensajes -->
-  <div style="max-height: 80vh; overflow-y: auto; padding-right: 0.5rem;">
+  <div class="messages-list">
     <h3 style="font-weight: 800; margin-bottom: 1.25rem;">Historial de Mensajes</h3>
     
     <% if (complaints.length === 0) { %>
-      <p style="text-align: center; color: var(--text-light); font-style: italic; padding: 3rem 0;">No hay quejas ni sugerencias registradas.</p>
+      <p class="empty-messages">No hay quejas ni sugerencias registradas.</p>
     <% } else { %>
       <% complaints.forEach(complaint => { %>
-        <div class="comment-card" style="border-left: 4px solid <%= complaint.status === 'pending' ? 'var(--warning)' : 'var(--success)' %>">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-            <span style="font-weight: 700; color: var(--text-main);"><%= complaint.subject %></span>
-            <span class="badge <%= complaint.status === 'pending' ? 'badge-pending' : 'badge-approved' %>" style="font-size: 0.7rem;">
+        <div class="comment-card <%= complaint.status === 'pending' ? 'card-pending' : 'card-approved' %>">
+          <div class="message-header">
+            <span class="message-subject"><%= complaint.subject %></span>
+            <span class="badge <%= complaint.status === 'pending' ? 'badge-pending' : 'badge-approved' %> badge-sm">
               <%= complaint.status === 'pending' ? 'Pendiente' : 'Respondido' %>
             </span>
           </div>
           
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+          <p class="message-meta">
             Enviado por: <%= complaint.user_name %> (<%= complaint.user_email %>) el <%= new Date(complaint.created_at).toLocaleDateString('es-ES') %>
           </p>
           
-          <p style="font-size: 0.95rem; color: var(--text-main); white-space: pre-wrap; margin-bottom: 1rem;"><%= complaint.message %></p>
+          <p class="message-body"><%= complaint.message %></p>
 
           <!-- Respuesta -->
           <% if (complaint.reply) { %>
-            <div style="background-color: var(--bg-sec); padding: 1rem; border-radius: var(--radius-sm); margin-top: 1rem; border-left: 3px solid var(--success);">
-              <span style="font-size: 0.75rem; font-weight: 700; color: var(--success); display: block; text-transform: uppercase;">Respuesta de <%= complaint.replied_by %>:</span>
-              <p style="font-size: 0.9rem; color: var(--text-main); margin-top: 0.25rem; white-space: pre-wrap;"><%= complaint.reply %></p>
+            <div class="reply-box">
+              <span class="reply-header">Respuesta de <%= complaint.replied_by %>:</span>
+              <p class="reply-body"><%= complaint.reply %></p>
             </div>
           <% } else if (user.role === 'admin' || user.role === 'seller') { %>
             <!-- Formulario de Respuesta para Admin o Vendedor -->
-            <form action="/quejas/responder/<%= complaint.id %>" method="POST" style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
+            <form action="/quejas/responder/<%= complaint.id %>" method="POST" class="reply-form">
               <div class="form-group" style="margin-bottom: 0.75rem;">
-                <label for="reply-<%= complaint.id %>" style="font-size: 0.75rem; font-weight: 700;">Responder Mensaje</label>
+                <label for="reply-<%= complaint.id %>" class="reply-label">Responder Mensaje</label>
                 <textarea id="reply-<%= complaint.id %>" name="reply" rows="3" class="form-control" placeholder="Escribe tu respuesta oficial aquí..." required></textarea>
               </div>
-              <button type="submit" class="btn btn-success" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Enviar Respuesta</button>
+              <button type="submit" class="btn btn-success btn-reply">Enviar Respuesta</button>
             </form>
           <% } %>
         </div>

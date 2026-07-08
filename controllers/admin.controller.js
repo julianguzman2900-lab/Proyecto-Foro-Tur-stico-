@@ -38,6 +38,17 @@ exports.auditarVendedor = async (req, res) => {
   }
 
   try {
+    const seller = await User.findById(seller_id);
+    if (!seller) {
+      req.session.error = 'El vendedor no existe.';
+      return res.redirect('/admin/dashboard');
+    }
+
+    if (seller.status !== 'pending') {
+      req.session.error = 'Esta cuenta ya ha sido auditada y no se puede volver a cambiar su estado.';
+      return res.redirect('/admin/dashboard');
+    }
+
     let status = 'approved';
     let reason = null;
 
@@ -73,6 +84,11 @@ exports.auditarTour = async (req, res) => {
     const tour = await Tour.findById(tour_id);
     if (!tour) {
       req.session.error = 'El tour no existe.';
+      return res.redirect('/admin/dashboard');
+    }
+
+    if (tour.status !== 'pending') {
+      req.session.error = 'Este tour ya ha sido auditado y no se puede volver a cambiar su estado.';
       return res.redirect('/admin/dashboard');
     }
 

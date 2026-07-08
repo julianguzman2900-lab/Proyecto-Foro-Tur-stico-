@@ -1,0 +1,134 @@
+/* Seller Dashboard Specific Styles */
+.sidebar-profile {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.sidebar-profile h3 {
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.sidebar-profile .role-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.stat-num.success {
+  color: var(--success);
+}
+
+.stat-num.warning {
+  color: var(--warning);
+}
+
+.table-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.table-header h3 {
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-sm {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.modal-header-margin {
+  margin-bottom: 1.5rem;
+  font-weight: 800;
+}
+
+.form-group-margin {
+  margin-bottom: 1.25rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.badge-inline {
+  margin-top: 0.5rem;
+  display: inline-block;
+}
+
+.alert-no-margin {
+  margin: 0;
+}
+
+.section-no-margin {
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-weight: 800;
+  font-size: 1.35rem;
+  margin-bottom: 1.5rem;
+}
+
+.grid-2-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.grid-3-col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.grid-4-col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-block {
+  width: 100%;
+  padding: 0.9rem;
+}
+
+.tour-thumbnail-lg {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.reject-row {
+  background-color: var(--danger-light);
+}
+
+.reject-cell {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.85rem;
+  color: var(--danger);
+  border-top: none;
+}
+
+.modal-content-lg {
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .grid-2-col, .grid-3-col, .grid-4-col {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}

@@ -1,0 +1,220 @@
+/* Tour Specific Styles */
+.rating-lg {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--warning);
+}
+
+.rating-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.no-rating {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.info-val-success {
+  color: var(--success);
+}
+
+.description-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.description-text {
+  color: var(--text-main);
+  white-space: pre-line;
+  margin-bottom: 2rem;
+}
+
+.provider-box {
+  background-color: var(--primary-light);
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.provider-title {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.provider-info {
+  font-size: 0.9rem;
+  color: var(--text-main);
+  margin-top: 0.25rem;
+}
+
+.provider-badge {
+  font-size: 0.85rem;
+  background-color: var(--bg-main);
+  color: var(--text-muted);
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+  border-radius: 50px;
+  border: 1px solid var(--border);
+}
+
+.tour-card-shadow {
+  box-shadow: var(--shadow-sm);
+}
+
+.tour-card-img-wrapper {
+  height: 150px;
+}
+
+.tour-card-pad {
+  padding: 1rem;
+}
+
+.meta-tag-inline {
+  margin-bottom: 0.5rem;
+  display: inline-block;
+}
+
+.rec-tour-title {
+  font-size: 1.1rem;
+  line-height: 1.3;
+  margin-bottom: 0.5rem;
+}
+
+.rec-tour-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.rec-tour-price {
+  font-weight: 800;
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.rec-btn {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.comment-form-title {
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.login-prompt-box {
+  background-color: var(--bg-main);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  text-align: center;
+  border-radius: var(--radius-md);
+  margin-top: 1.5rem;
+}
+
+.login-prompt-text {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.empty-comments {
+  color: var(--text-light);
+  text-align: center;
+  font-style: italic;
+  padding: 2rem 0;
+}
+
+.comment-date {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-left: 0.5rem;
+}
+
+.comment-photos-grid {
+  margin-bottom: 1rem;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn-xs {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.booking-status-label {
+  font-weight: 700;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.booking-status-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-top: 0.25rem;
+}
+
+.btn-book {
+  width: 100%;
+  font-size: 1.05rem;
+  padding: 0.9rem;
+}
+
+.btn-disabled {
+  width: 100%;
+  cursor: not-allowed;
+}
+
+.admin-book-warning {
+  background-color: var(--bg-sec);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-align: center;
+}
+
+.modal-content-lg {
+  max-width: 600px;
+  padding: 1.5rem;
+  position: relative;
+}
+
+.modal-img-full {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.status-available {
+  color: var(--success);
+}
+
+.status-empty {
+  color: var(--danger);
+}

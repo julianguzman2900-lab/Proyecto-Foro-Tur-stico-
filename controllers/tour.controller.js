@@ -1,5 +1,6 @@
 const Tour = require('../models/Tour');
 const Comment = require('../models/Comment');
+const Booking = require('../models/Booking');
 
 // =============================================
 // VALIDACIÓN DE TEXTO (auxiliar interna)
@@ -16,7 +17,7 @@ function isValidText(text) {
 exports.getTours = async (req, res) => {
   try {
     const { search, continent, country, city, activity, duration, difficulty } = req.query;
-    let query = { status: 'approved' };
+    let query = { status: 'approved', activity_date: { $gte: new Date() } };
 
     if (search) {
       query.$or = [
@@ -64,9 +65,18 @@ exports.getTourDetalle = async (req, res) => {
 
     const recommendations = await Tour.find({
       status: 'approved',
+      activity_date: { $gte: new Date() },
       country: tour.country,
       _id: { $ne: tour._id }
     }).limit(4);
+
+    let canComment = false;
+    if (req.session.user) {
+      const user_id = req.session.user.id;
+      const completedBookings = await Booking.findCompletedBookings(user_id, tour._id.toString());
+      const commentsCount = await Comment.countDocuments({ user_id, tour_id: tour._id });
+      canComment = completedBookings.length > 0 && commentsCount < completedBookings.length;
+    }
 
     res.render('tour', {
       tour,
@@ -74,6 +84,7 @@ exports.getTourDetalle = async (req, res) => {
       avgRating,
       recommendations,
       user: req.session.user,
+      canComment,
       error: req.session.error,
       success: req.session.success
     });
@@ -86,11 +97,20 @@ exports.getTourDetalle = async (req, res) => {
 };
 
 exports.createTour = async (req, res) => {
-  const { title, description, continent, country, city, activity, duration, difficulty, price, spots_total, contact_info } = req.body;
+  const { title, description, continent, country, city, activity, duration, difficulty, price, spots_total, contact_info, start_address, coordinates, activity_date } = req.body;
 
-  if (!title || !description || !continent || !country || !city || !activity || !duration || !difficulty || !price || !spots_total || !contact_info) {
-    req.session.error = 'Todos los campos son obligatorios.';
+  if (!title || !description || !continent || !country || !city || !activity || !duration || !difficulty || !price || !spots_total || !contact_info || !start_address || !activity_date) {
+    req.session.error = 'Todos los campos son obligatorios (incluyendo dirección de inicio y fecha de actividad).';
     return res.redirect('/vendedor/dashboard');
+  }
+
+  const isLink = /^(https?:\/\/)?(www\.)?(google\.com\/maps|maps\.google\.com|maps\.app\.goo\.gl|goo\.gl\/maps|http|www|\.gl)/i.test(start_address.trim());
+  if (isLink) {
+    const isGoogleMaps = /^(https?:\/\/)?(www\.)?(google\.com\/maps|maps\.google\.com|maps\.app\.goo\.gl|goo\.gl\/maps)/i.test(start_address.trim());
+    if (!isGoogleMaps) {
+      req.session.error = 'Si ingresas un enlace en la dirección de inicio, debe ser un link válido de Google Maps.';
+      return res.redirect('/vendedor/dashboard');
+    }
   }
 
   if (!isValidText(title)) {
@@ -104,7 +124,7 @@ exports.createTour = async (req, res) => {
   }
 
   const images = req.files && req.files.length > 0
-    ? req.files.map(file => '/uploads/' + file.filename)
+    ? req.files.map(file => file.path && file.path.startsWith('http') ? file.path : '/uploads/' + file.filename)
     : [];
 
   if (images.length === 0) {
@@ -121,6 +141,9 @@ exports.createTour = async (req, res) => {
       spots_total: parseInt(spots_total),
       spots_available: parseInt(spots_total),
       images, contact_info,
+      start_address,
+      coordinates: coordinates || '',
+      activity_date: new Date(activity_date),
       status: 'pending'
     });
 
@@ -136,7 +159,7 @@ exports.createTour = async (req, res) => {
 
 exports.editTour = async (req, res) => {
   const { id } = req.params;
-  const { title, description, continent, country, city, activity, duration, difficulty, price, spots_total, contact_info } = req.body;
+  const { title, description, continent, country, city, activity, duration, difficulty, price, spots_total, contact_info, start_address, coordinates, activity_date } = req.body;
 
   try {
     const tour = await Tour.findById(id);
@@ -158,6 +181,20 @@ exports.editTour = async (req, res) => {
       return res.redirect('/vendedor/dashboard');
     }
 
+    if (!start_address || !activity_date) {
+      req.session.error = 'La dirección de inicio y la fecha de actividad son obligatorias.';
+      return res.redirect(isAdmin ? '/admin/dashboard' : '/vendedor/dashboard');
+    }
+
+    const isLinkVal = /^(https?:\/\/)?(www\.)?(google\.com\/maps|maps\.google\.com|maps\.app\.goo\.gl|goo\.gl\/maps|http|www|\.gl)/i.test(start_address.trim());
+    if (isLinkVal) {
+      const isGoogleMapsVal = /^(https?:\/\/)?(www\.)?(google\.com\/maps|maps\.google\.com|maps\.app\.goo\.gl|goo\.gl\/maps)/i.test(start_address.trim());
+      if (!isGoogleMapsVal) {
+        req.session.error = 'Si ingresas un enlace en la dirección de inicio, debe ser un link válido de Google Maps.';
+        return res.redirect(isAdmin ? '/admin/dashboard' : '/vendedor/dashboard');
+      }
+    }
+
     if (!isValidText(title) || !isValidText(description)) {
       req.session.error = 'El título o la descripción contienen caracteres no válidos.';
       return res.redirect(isAdmin ? '/admin/dashboard' : '/vendedor/dashboard');
@@ -174,11 +211,14 @@ exports.editTour = async (req, res) => {
     tour.difficulty = difficulty;
     tour.price = parseFloat(price);
     tour.contact_info = contact_info;
+    tour.start_address = start_address;
+    tour.coordinates = coordinates || '';
+    tour.activity_date = new Date(activity_date);
     tour.spots_total = parseInt(spots_total);
     tour.spots_available = Math.max(0, tour.spots_available + diffSpots);
 
     if (req.files && req.files.length > 0) {
-      req.files.forEach(file => tour.images.push('/uploads/' + file.filename));
+      req.files.forEach(file => tour.images.push(file.path && file.path.startsWith('http') ? file.path : '/uploads/' + file.filename));
     }
 
     if (!isAdmin) {
@@ -235,14 +275,27 @@ exports.createComentario = async (req, res) => {
 
   if (!tour_id || !rating || !comment) {
     req.session.error = 'La calificación y el comentario son requeridos.';
-    return res.redirect('back');
+    return res.redirect(req.get('Referrer') || '/');
   }
 
-  const photos = req.files && req.files.length > 0
-    ? req.files.map(file => '/uploads/' + file.filename)
-    : [];
-
   try {
+    const completedBookings = await Booking.findCompletedBookings(user.id, tour_id);
+    const commentsCount = await Comment.countDocuments({ user_id: user.id, tour_id });
+
+    if (completedBookings.length === 0) {
+      req.session.error = 'Solo quienes participaron en la actividad y finalizaron su reserva pueden dejar una reseña.';
+      return res.redirect(req.get('Referrer') || '/');
+    }
+
+    if (commentsCount >= completedBookings.length) {
+      req.session.error = 'No puedes publicar más de una reseña por cada reserva completada.';
+      return res.redirect(req.get('Referrer') || '/');
+    }
+
+    const photos = req.files && req.files.length > 0
+      ? req.files.map(file => file.path && file.path.startsWith('http') ? file.path : '/uploads/' + file.filename)
+      : [];
+
     const newComment = new Comment({
       tour_id,
       user_id: user.id,
@@ -258,7 +311,7 @@ exports.createComentario = async (req, res) => {
   } catch (error) {
     console.error(error);
     req.session.error = 'Error al publicar el comentario.';
-    res.redirect('back');
+    res.redirect(req.get('Referrer') || '/');
   }
 };
 
@@ -270,7 +323,7 @@ exports.editComentario = async (req, res) => {
     const commentObj = await Comment.findById(id);
     if (!commentObj) {
       req.session.error = 'El comentario no existe.';
-      return res.redirect('back');
+      return res.redirect(req.get('Referrer') || '/');
     }
 
     const isAdmin = req.session.user.role === 'admin';
@@ -278,14 +331,14 @@ exports.editComentario = async (req, res) => {
 
     if (!isAdmin && !isOwner) {
       req.session.error = 'No tienes permiso para editar este comentario.';
-      return res.redirect('back');
+      return res.redirect(req.get('Referrer') || '/');
     }
 
     commentObj.rating = parseInt(rating);
     commentObj.comment = comment;
 
     if (req.files && req.files.length > 0) {
-      req.files.forEach(file => commentObj.photos.push('/uploads/' + file.filename));
+      req.files.forEach(file => commentObj.photos.push(file.path && file.path.startsWith('http') ? file.path : '/uploads/' + file.filename));
     }
 
     await commentObj.save();
@@ -294,7 +347,7 @@ exports.editComentario = async (req, res) => {
   } catch (error) {
     console.error(error);
     req.session.error = 'Error al editar el comentario.';
-    res.redirect('back');
+    res.redirect(req.get('Referrer') || '/');
   }
 };
 
@@ -304,7 +357,7 @@ exports.deleteComentario = async (req, res) => {
     const commentObj = await Comment.findById(id);
     if (!commentObj) {
       req.session.error = 'El comentario no existe.';
-      return res.redirect('back');
+      return res.redirect(req.get('Referrer') || '/');
     }
 
     const isAdmin = req.session.user.role === 'admin';
@@ -312,15 +365,43 @@ exports.deleteComentario = async (req, res) => {
 
     if (!isAdmin && !isOwner) {
       req.session.error = 'No tienes permiso para eliminar este comentario.';
-      return res.redirect('back');
+      return res.redirect(req.get('Referrer') || '/');
     }
 
     await Comment.deleteOne({ _id: commentObj._id });
     req.session.success = 'Comentario eliminado.';
-    res.redirect('back');
+    res.redirect(req.get('Referrer') || '/');
   } catch (error) {
     console.error(error);
     req.session.error = 'Error al eliminar el comentario.';
-    res.redirect('back');
+    res.redirect(req.get('Referrer') || '/');
+  }
+};
+
+exports.finalizeTour = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const tour = await Tour.findById(id);
+    if (!tour) {
+      req.session.error = 'El tour no existe.';
+      return res.redirect(req.get('Referrer') || '/');
+    }
+
+    const isAdmin = req.session.user.role === 'admin';
+    const isOwner = req.session.user.id === tour.seller_id;
+
+    if (!isAdmin && !isOwner) {
+      req.session.error = 'No tienes permiso para finalizar esta actividad.';
+      return res.redirect(req.get('Referrer') || '/');
+    }
+
+    tour.status = 'finished';
+    await tour.save();
+    req.session.success = 'La actividad ha sido marcada como Finalizada.';
+    res.redirect(req.get('Referrer') || '/');
+  } catch (error) {
+    console.error(error);
+    req.session.error = 'Error al finalizar la actividad.';
+    res.redirect(req.get('Referrer') || '/');
   }
 };
