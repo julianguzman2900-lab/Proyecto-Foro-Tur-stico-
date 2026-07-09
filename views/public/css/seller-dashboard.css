@@ -147,3 +147,309 @@ form {
     max-width: 100%;
   }
 }
+
+/* =============================================
+   INLINE CALENDAR WITH SPOT POPOVER
+   ============================================= */
+.calendar-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid var(--border, #cbd5e1);
+  border-radius: var(--radius-sm, 12px);
+  padding: 1.25rem;
+  max-width: 380px;
+  margin: 1.25rem auto;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+}
+
+.calendar-header-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.calendar-header-nav span {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-main, #0f172a);
+}
+
+.btn-cal-nav {
+  background: #ffffff;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  color: var(--text-main, #475569);
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: bold;
+}
+
+.btn-cal-nav:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+  margin-bottom: 0.5rem;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-day {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  font-weight: 500;
+  border: 1px solid transparent;
+  color: var(--text-main, #334155);
+}
+
+.calendar-day:hover:not(.disabled):not(.empty) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.calendar-day.disabled {
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.calendar-day.empty {
+  cursor: default;
+}
+
+.calendar-day.selected {
+  background: var(--primary, #2563eb) !important;
+  color: #ffffff !important;
+  border-color: var(--primary, #2563eb);
+}
+
+.calendar-day .day-spots-indicator {
+  position: absolute;
+  bottom: 2px;
+  font-size: 0.6rem;
+  background: rgba(0,0,0,0.06);
+  color: var(--text-muted, #64748b);
+  padding: 0 4px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.calendar-day.selected .day-spots-indicator {
+  background: rgba(255,255,255,0.22);
+  color: #ffffff;
+}
+
+/* Floating Popover styling */
+.spots-popover {
+  position: absolute;
+  z-index: 100;
+  background: #ffffff;
+  border: 1px solid #94a3b8;
+  border-radius: var(--radius-sm, 8px);
+  padding: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 150px;
+}
+
+.spots-popover label {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #334155;
+  margin: 0;
+}
+
+.popover-input-group {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.popover-input-group input {
+  width: 100%;
+  padding: 0.35rem;
+  font-size: 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  outline: none;
+}
+
+.btn-popover-save {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-popover-save:hover {
+  background: #059669;
+}
+
+/* Availability Section Wrapper Layout */
+.availability-section-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+}
+
+.availability-info-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.availability-calendar-column {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Adjust size of the calendar card slightly larger */
+.calendar-card {
+  max-width: 420px;
+  width: 100%;
+}
+
+.calendar-day {
+  font-size: 0.95rem;
+  height: 2.75rem;
+}
+
+@media (max-width: 768px) {
+  .availability-section-wrapper {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  .calendar-card {
+    margin: 0 auto;
+  }
+}
+
+/* Vertically center layout grid items */
+.availability-section-wrapper {
+  align-items: center; /* Center-align columns vertically */
+}
+
+/* Preview Dates Container styling */
+.preview-dates-card {
+  background: #f8fafc;
+  border: 1px solid var(--border, #cbd5e1);
+  border-radius: var(--radius-sm, 12px);
+  padding: 1.25rem;
+  box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.02);
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  max-width: 420px;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.preview-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #334155;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.preview-dates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.empty-preview-state {
+  font-size: 0.85rem;
+  color: var(--text-muted, #64748b);
+  text-align: center;
+  margin: auto;
+  font-style: italic;
+}
+
+.preview-date-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+  animation: slideIn 0.2s ease-out;
+}
+
+.preview-date-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.preview-date-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  text-transform: capitalize;
+}
+
+.preview-date-spots {
+  font-size: 0.75rem;
+  color: var(--primary, #2563eb);
+  font-weight: 700;
+}
+
+.btn-remove-preview-date {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.btn-remove-preview-date:hover {
+  transform: scale(1.2);
+}
+
+
+
+

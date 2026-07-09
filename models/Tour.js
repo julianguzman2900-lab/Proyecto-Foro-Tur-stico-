@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const TourSchema = new mongoose.Schema({
   seller_id: { type: Number, required: true },
   seller_name: { type: String, required: true },
+  company_name: { type: String, default: '' },
   title: { type: String, required: true },
   description: { type: String, required: true },
   continent: { type: String, required: true },

@@ -1,6 +1,7 @@
 const Tour = require('../models/Tour');
 const Comment = require('../models/Comment');
 const Booking = require('../models/Booking');
+const db = require('../config/db');
 
 // =============================================
 // VALIDACIÓN DE TEXTO (auxiliar interna)
@@ -46,21 +47,38 @@ function generateAvailabilityDates(startDateStr, endDateStr, daysOfWeekArr, spot
 
 exports.getTours = async (req, res) => {
   try {
-    const { search, continent, country, city, activity, duration, difficulty } = req.query;
+    const { search, continent, country, city, activity, duration, difficulty, seller_id } = req.query;
     let query = { status: 'approved', activity_date: { $gte: new Date() } };
 
     if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
-      ];
+      const words = search.trim().split(/\s+/).filter(Boolean);
+      const searchConditions = words.map(w => ({
+        $or: [
+          { title: { $regex: w, $options: 'i' } },
+          { description: { $regex: w, $options: 'i' } },
+          { country: { $regex: w, $options: 'i' } },
+          { city: { $regex: w, $options: 'i' } },
+          { activity: { $regex: w, $options: 'i' } }
+        ]
+      }));
+      if (searchConditions.length > 0) {
+        query.$and = searchConditions;
+      }
     }
-    if (continent) query.continent = { $regex: `^${continent}$`, $options: 'i' };
-    if (country) query.country = { $regex: `^${country}$`, $options: 'i' };
-    if (city) query.city = { $regex: `^${city}$`, $options: 'i' };
-    if (activity) query.activity = { $regex: `^${activity}$`, $options: 'i' };
+    if (continent) {
+      let continentRegex = continent;
+      if (continent.toLowerCase() === 'américa' || continent.toLowerCase() === 'america') {
+        // Match America, America del norte/sur, centroamerica, etc.
+        continentRegex = 'am[eé]rica|centroam[eé]rica|sudam[eé]rica|norteam[eé]rica';
+      }
+      query.continent = { $regex: continentRegex, $options: 'i' };
+    }
+    if (country) query.country = { $regex: country, $options: 'i' };
+    if (city) query.city = { $regex: city, $options: 'i' };
+    if (activity) query.activity = { $regex: activity, $options: 'i' };
     if (duration) query.duration = { $regex: duration, $options: 'i' };
     if (difficulty) query.difficulty = difficulty;
+    if (seller_id) query.seller_id = parseInt(seller_id);
 
     const tours = await Tour.find(query).sort({ created_at: -1 });
 
@@ -102,10 +120,7 @@ exports.getTourDetalle = async (req, res) => {
 
     let canComment = false;
     if (req.session.user) {
-      const user_id = req.session.user.id;
-      const completedBookings = await Booking.findCompletedBookings(user_id, tour._id.toString());
-      const commentsCount = await Comment.countDocuments({ user_id, tour_id: tour._id });
-      canComment = completedBookings.length > 0 && commentsCount < completedBookings.length;
+      canComment = true;
     }
 
     res.render('tour', {
@@ -173,6 +188,7 @@ exports.createTour = async (req, res) => {
     const newTour = new Tour({
       seller_id: req.session.user.id,
       seller_name: req.session.user.name,
+      company_name: req.session.user.company_name || '',
       title, description, continent, country, city, activity, duration, difficulty,
       price: parseFloat(price),
       spots_total: parseInt(spots_total),
@@ -348,8 +364,9 @@ exports.deleteTour = async (req, res) => {
 
     await Tour.deleteOne({ _id: tour._id });
     await Comment.deleteMany({ tour_id: tour._id });
+    await db.mysql.query('DELETE FROM bookings WHERE tour_id = $1', [tour._id.toString()]);
 
-    req.session.success = 'El tour y sus comentarios han sido eliminados.';
+    req.session.success = 'El tour, sus comentarios y reservas han sido eliminados de la base de datos.';
     res.redirect(isAdmin ? '/admin/dashboard' : '/vendedor/dashboard');
   } catch (error) {
     console.error(error);
@@ -372,18 +389,7 @@ exports.createComentario = async (req, res) => {
   }
 
   try {
-    const completedBookings = await Booking.findCompletedBookings(user.id, tour_id);
-    const commentsCount = await Comment.countDocuments({ user_id: user.id, tour_id });
-
-    if (completedBookings.length === 0) {
-      req.session.error = 'Solo quienes participaron en la actividad y finalizaron su reserva pueden dejar una reseña.';
-      return res.redirect(req.get('Referrer') || '/');
-    }
-
-    if (commentsCount >= completedBookings.length) {
-      req.session.error = 'No puedes publicar más de una reseña por cada reserva completada.';
-      return res.redirect(req.get('Referrer') || '/');
-    }
+    // Allow reviews for all registered/logged-in users
 
     const photos = req.files && req.files.length > 0
       ? req.files.map(file => file.path && file.path.startsWith('http') ? file.path : '/uploads/' + file.filename)

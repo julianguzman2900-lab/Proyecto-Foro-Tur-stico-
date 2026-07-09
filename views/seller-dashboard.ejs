@@ -110,7 +110,7 @@
             </div>
           </div>
 
-          <div class="grid-4-col">
+          <div class="grid-3-col">
             <div class="form-group">
               <label for="duration">Duración</label>
               <input type="text" id="duration" name="duration" class="form-control" placeholder="Ej: 3 horas o 2 días" required>
@@ -119,11 +119,6 @@
             <div class="form-group">
               <label for="price">Precio por Persona ($)</label>
               <input type="number" id="price" name="price" class="form-control" min="1" step="0.01" placeholder="Ej: 45" required>
-            </div>
-
-            <div class="form-group">
-              <label for="spots_total">Cupos Totales</label>
-              <input type="number" id="spots_total" name="spots_total" class="form-control" min="1" placeholder="Ej: 20" required>
             </div>
 
             <div class="form-group">
@@ -152,29 +147,43 @@
           </div>
 
           <h4 style="margin-top: 1.5rem; margin-bottom: 1rem; color: var(--primary);">Disponibilidad del Tour</h4>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Configura el rango de fechas en las que ofrecerás el tour (mínimo 5 días) y los días específicos de la semana.</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Haz clic sobre los días disponibles en el calendario y define la cantidad de cupos para cada fecha seleccionada.</p>
 
-          <div class="grid-2-col" style="margin-bottom: 1rem;">
-            <div class="form-group form-group-margin">
-              <label for="start_date">Fecha de Inicio</label>
-              <input type="date" id="start_date" name="start_date" class="form-control" required min="<%= new Date().toISOString().split('T')[0] %>">
-            </div>
-            <div class="form-group form-group-margin">
-              <label for="end_date">Fecha de Finalización</label>
-              <input type="date" id="end_date" name="end_date" class="form-control" required min="<%= new Date(new Date().setDate(new Date().getDate() + 4)).toISOString().split('T')[0] %>">
-            </div>
+          <!-- Hidden inputs mapped to actual backend fields -->
+          <input type="hidden" id="start_date" name="start_date" required>
+          <input type="hidden" id="end_date" name="end_date" required>
+          <input type="hidden" id="spots_total" name="spots_total" required>
+          
+          <!-- Hidden day checkboxes to submit to backend -->
+          <div style="display: none;">
+            <input type="checkbox" name="days_of_week" value="1" class="hidden-day-checkbox">
+            <input type="checkbox" name="days_of_week" value="2" class="hidden-day-checkbox">
+            <input type="checkbox" name="days_of_week" value="3" class="hidden-day-checkbox">
+            <input type="checkbox" name="days_of_week" value="4" class="hidden-day-checkbox">
+            <input type="checkbox" name="days_of_week" value="5" class="hidden-day-checkbox">
+            <input type="checkbox" name="days_of_week" value="6" class="hidden-day-checkbox">
+            <input type="checkbox" name="days_of_week" value="0" class="hidden-day-checkbox">
           </div>
 
-          <div class="form-group form-group-margin">
-            <label>Días de la semana disponibles</label>
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;" id="days-container">
-              <label><input type="checkbox" name="days_of_week" value="1" class="day-checkbox"> Lunes</label>
-              <label><input type="checkbox" name="days_of_week" value="2" class="day-checkbox"> Martes</label>
-              <label><input type="checkbox" name="days_of_week" value="3" class="day-checkbox"> Miércoles</label>
-              <label><input type="checkbox" name="days_of_week" value="4" class="day-checkbox"> Jueves</label>
-              <label><input type="checkbox" name="days_of_week" value="5" class="day-checkbox"> Viernes</label>
-              <label><input type="checkbox" name="days_of_week" value="6" class="day-checkbox"> Sábado</label>
-              <label><input type="checkbox" name="days_of_week" value="0" class="day-checkbox"> Domingo</label>
+          <!-- Inline Calendar Card with spots popover -->
+          <div class="calendar-card" style="margin: 1.5rem auto;">
+            <div class="calendar-header-nav">
+              <button type="button" class="btn-cal-nav" onclick="changeMonth(-1)">&lt;</button>
+              <span id="calendar-month-year"></span>
+              <button type="button" class="btn-cal-nav" onclick="changeMonth(1)">&gt;</button>
+            </div>
+            <div class="calendar-weekdays">
+              <div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div>
+            </div>
+            <div class="calendar-days" id="calendar-days-grid"></div>
+            
+            <!-- Popover for setting spots -->
+            <div id="spots-popover" class="spots-popover" style="display: none;">
+              <label id="popover-date-label">Cupos:</label>
+              <div class="popover-input-group">
+                <input type="number" id="popover-spots-input" min="1" placeholder="Ej: 20">
+                <button type="button" class="btn-popover-save" onclick="saveSpots()">Ok</button>
+              </div>
             </div>
           </div>
 
@@ -182,17 +191,232 @@
         </form>
         
         <script>
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        const selectedDates = {};
+        let activePopoverDate = null;
+
+        function formatDate(date) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+
+        function renderCalendar() {
+          const grid = document.getElementById('calendar-days-grid');
+          const label = document.getElementById('calendar-month-year');
+          if (!grid || !label) return;
+          grid.innerHTML = '';
+          
+          const firstDayIndex = (new Date(currentYear, currentMonth, 1).getDay() + 6) % 7; 
+          const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+          
+          const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+          label.innerText = `${monthNames[currentMonth]} ${currentYear}`;
+          
+          for (let i = 0; i < firstDayIndex; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'calendar-day empty';
+            grid.appendChild(emptyCell);
+          }
+          
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          
+          for (let day = 1; day <= daysInMonth; day++) {
+            const dayCell = document.createElement('div');
+            dayCell.className = 'calendar-day';
+            
+            const dayNumSpan = document.createElement('span');
+            dayNumSpan.innerText = day;
+            dayCell.appendChild(dayNumSpan);
+            
+            const cellDate = new Date(currentYear, currentMonth, day);
+            const dateStr = formatDate(cellDate);
+            
+            if (cellDate < today) {
+              dayCell.classList.add('disabled');
+            } else {
+              dayCell.dataset.date = dateStr;
+              dayCell.addEventListener('click', (e) => handleDayClick(e, cellDate, dateStr));
+              
+              if (selectedDates[dateStr] !== undefined) {
+                dayCell.classList.add('selected');
+                
+                const spotsInd = document.createElement('span');
+                spotsInd.className = 'day-spots-indicator';
+                spotsInd.innerText = selectedDates[dateStr];
+                dayCell.appendChild(spotsInd);
+              }
+            }
+            grid.appendChild(dayCell);
+          }
+        }
+
+        function changeMonth(direction) {
+          closePopover();
+          currentMonth += direction;
+          if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+          } else if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+          }
+          renderCalendar();
+        }
+
+        function handleDayClick(event, date, dateStr) {
+          event.stopPropagation();
+          const cell = event.currentTarget;
+          
+          if (selectedDates[dateStr] !== undefined) {
+            delete selectedDates[dateStr];
+            closePopover();
+            renderCalendar();
+            updateFormInputs();
+          } else {
+            activePopoverDate = dateStr;
+            openPopover(cell, dateStr);
+          }
+        }
+
+        function openPopover(targetCell, dateStr) {
+          const popover = document.getElementById('spots-popover');
+          const label = document.getElementById('popover-date-label');
+          const input = document.getElementById('popover-spots-input');
+          if (!popover || !label || !input) return;
+          
+          label.innerText = `Cupos para ${dateStr}:`;
+          
+          const defaultSpots = document.getElementById('spots_total').value || '20';
+          input.value = selectedDates[dateStr] || defaultSpots;
+          
+          popover.style.display = 'flex';
+          
+          const rect = targetCell.getBoundingClientRect();
+          const parentRect = targetCell.closest('.calendar-card').getBoundingClientRect();
+          
+          popover.style.top = `${rect.top - parentRect.top + rect.height + 5}px`;
+          popover.style.left = `${rect.left - parentRect.left}px`;
+          
+          setTimeout(() => input.focus(), 50);
+        }
+
+        function saveSpots() {
+          const input = document.getElementById('popover-spots-input');
+          if (!input || !activePopoverDate) return;
+          const spotsVal = parseInt(input.value) || 20;
+          
+          selectedDates[activePopoverDate] = spotsVal;
+          closePopover();
+          renderCalendar();
+          updateFormInputs();
+        }
+
+        function closePopover() {
+          const popover = document.getElementById('spots-popover');
+          if (popover) popover.style.display = 'none';
+          activePopoverDate = null;
+        }
+
+        document.addEventListener('click', (e) => {
+          if (e.target.closest('#spots-popover') === null) {
+            closePopover();
+          }
+        });
+
+        function renderPreviewList() {
+          const listContainer = document.getElementById('preview-dates-list');
+          if (!listContainer) return;
+          listContainer.innerHTML = '';
+          
+          const sortedDates = Object.keys(selectedDates).sort();
+          
+          if (sortedDates.length === 0) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-preview-state';
+            emptyState.innerText = 'Aún no has seleccionado fechas. Tus días disponibles aparecerán aquí.';
+            listContainer.appendChild(emptyState);
+            return;
+          }
+          
+          sortedDates.forEach(dateStr => {
+            const card = document.createElement('div');
+            card.className = 'preview-date-item';
+            
+            const dateObj = new Date(dateStr + 'T00:00:00');
+            const options = { weekday: 'short', day: 'numeric', month: 'short' };
+            const formattedLabel = dateObj.toLocaleDateString('es-ES', options);
+            
+            card.innerHTML = `
+              <div class="preview-date-info">
+                <span class="preview-date-label">${formattedLabel}</span>
+                <span class="preview-date-spots">${selectedDates[dateStr]} cupos</span>
+              </div>
+              <button type="button" class="btn-remove-preview-date" onclick="removeSelectedDate('${dateStr}')">&times;</button>
+            `;
+            listContainer.appendChild(card);
+          });
+        }
+        
+        function removeSelectedDate(dateStr) {
+          delete selectedDates[dateStr];
+          closePopover();
+          renderCalendar();
+          updateFormInputs();
+        }
+
+        function updateFormInputs() {
+          const dates = Object.keys(selectedDates).sort();
+          if (dates.length === 0) {
+            document.getElementById('start_date').value = '';
+            document.getElementById('end_date').value = '';
+            document.querySelectorAll('.hidden-day-checkbox').forEach(cb => cb.checked = false);
+            renderPreviewList();
+            return;
+          }
+          
+          document.getElementById('start_date').value = dates[0];
+          document.getElementById('end_date').value = dates[dates.length - 1];
+          
+          const daysSelected = new Set();
+          dates.forEach(dStr => {
+            const d = new Date(dStr + 'T00:00:00');
+            daysSelected.add(d.getDay());
+          });
+          
+          document.querySelectorAll('.hidden-day-checkbox').forEach(cb => {
+            cb.checked = daysSelected.has(parseInt(cb.value));
+          });
+          
+          const maxSpots = Math.max(...Object.values(selectedDates), 1);
+          document.getElementById('spots_total').value = maxSpots;
+          
+          renderPreviewList();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+          renderCalendar();
+        });
+
         function validateCreateForm() {
-          const checkboxes = document.querySelectorAll('.day-checkbox');
-          const isChecked = Array.from(checkboxes).some(cb => cb.checked);
-          if (!isChecked) {
-            alert('Debes seleccionar al menos un día de la semana para la disponibilidad.');
+          const dates = Object.keys(selectedDates);
+          if (dates.length === 0) {
+            alert('Debes seleccionar al menos un día en el calendario.');
             return false;
           }
-          const start = new Date(document.getElementById('start_date').value);
-          const end = new Date(document.getElementById('end_date').value);
+          const startVal = document.getElementById('start_date').value;
+          const endVal = document.getElementById('end_date').value;
+          if (!startVal || !endVal) {
+            alert('Debes seleccionar un rango de fechas en el calendario.');
+            return false;
+          }
+          const start = new Date(startVal);
+          const end = new Date(endVal);
           if ((end - start) < (4 * 24 * 60 * 60 * 1000)) {
-            alert('El período de disponibilidad debe ser de al menos 5 días calendario.');
+            alert('El período de disponibilidad (rango de fechas seleccionadas) debe abarcar al menos 5 días calendario.');
             return false;
           }
           return true;
@@ -259,11 +483,11 @@
                       <button class="btn btn-secondary btn-sm" onclick="openEditTourModal(this.dataset.tour)" data-tour="<%= JSON.stringify(tour) %>">Editar</button>
                     <% } %>
                     <% if (tour.status === 'approved' && !isExpired) { %>
-                      <form action="/tour/finalizar/<%= tour._id %>" method="POST" style="display:inline;" onsubmit="return confirm('¿Estás seguro de marcar esta actividad como finalizada? Esto impedirá nuevas reservas.')">
-                        <button type="submit" class="btn btn-warning btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600;">Finalizar</button>
+                      <form action="/tour/finalizar/<%= tour._id %>" method="POST" style="display:inline;" id="finalize-form-<%= tour._id %>">
+                        <button type="button" class="btn btn-warning btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600;" onclick="showCustomConfirm('¿Estás seguro de marcar esta actividad como finalizada? Esto impedirá nuevas reservas.', () => document.getElementById('finalize-form-<%= tour._id %>').submit())">Finalizar</button>
                       </form>
                     <% } %>
-                    <a href="/tour/eliminar/<%= tour._id %>" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este tour?')">Eliminar</a>
+                    <a href="javascript:void(0)" class="btn btn-danger btn-sm" onclick="showCustomConfirm('¿Estás seguro de que deseas eliminar este tour?', () => window.location.href='/tour/eliminar/<%= tour._id %>')">Eliminar</a>
                   </div>
                 </td>
               </tr>

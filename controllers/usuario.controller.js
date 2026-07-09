@@ -206,7 +206,17 @@ exports.cancelBooking = async (req, res) => {
       // Find the specific date and restore spots
       let targetDateObj = null;
       if (tour.dates && tour.dates.length > 0) {
-        targetDateObj = tour.dates.find(d => d.date === booking.date);
+        let bookingDateStr = booking.date;
+        if (booking.date instanceof Date) {
+          const y = booking.date.getUTCFullYear();
+          const m = String(booking.date.getUTCMonth() + 1).padStart(2, '0');
+          const d = String(booking.date.getUTCDate()).padStart(2, '0');
+          bookingDateStr = `${y}-${m}-${d}`;
+        } else if (typeof booking.date === 'string') {
+          bookingDateStr = booking.date.split('T')[0];
+        }
+
+        targetDateObj = tour.dates.find(d => d.date === bookingDateStr);
         if (targetDateObj) {
           targetDateObj.spots_available = Math.min(targetDateObj.spots_total, targetDateObj.spots_available + booking.spots);
           if (targetDateObj.spots_available === 0) targetDateObj.status = 'sold_out';
@@ -288,12 +298,20 @@ exports.getQuejas = async (req, res) => {
   const user = req.session.user;
 
   try {
-    const complaints = user.role === 'user'
-      ? await Complaint.findByUserId(user.id)
-      : await Complaint.findAll();
+    let complaints;
+    if (user.role === 'admin') {
+      complaints = await Complaint.findAll();
+    } else if (user.role === 'seller') {
+      complaints = await Complaint.findBySellerId(user.id);
+    } else {
+      complaints = await Complaint.findByUserId(user.id);
+    }
+
+    const tours = await Tour.find({ status: 'approved' }).sort({ title: 1 });
 
     res.render('complaints', {
       complaints,
+      tours,
       user,
       error: req.session.error,
       success: req.session.success
@@ -307,7 +325,7 @@ exports.getQuejas = async (req, res) => {
 };
 
 exports.createQueja = async (req, res) => {
-  const { subject, message } = req.body;
+  const { subject, message, tour_id } = req.body;
   const user_id = req.session.user.id;
 
   if (!subject || !message) {
@@ -316,8 +334,29 @@ exports.createQueja = async (req, res) => {
   }
 
   try {
-    await Complaint.create({ user_id, subject, message });
-    req.session.success = 'Tu queja/sugerencia ha sido enviada. Un administrador o proveedor te responderá pronto.';
+    let finalTourId = null;
+    let tourTitle = null;
+    let sellerId = null;
+
+    if (tour_id && tour_id.trim() !== '') {
+      const tour = await Tour.findById(tour_id);
+      if (tour) {
+        finalTourId = tour._id.toString();
+        tourTitle = tour.title;
+        sellerId = parseInt(tour.seller_id) || null;
+      }
+    }
+
+    await Complaint.create({
+      user_id,
+      subject,
+      message,
+      tour_id: finalTourId,
+      tour_title: tourTitle,
+      seller_id: sellerId
+    });
+
+    req.session.success = 'Tu queja/sugerencia ha sido enviada. Un administrador o el proveedor mencionado responderá pronto.';
     res.redirect('/quejas');
   } catch (error) {
     console.error(error);

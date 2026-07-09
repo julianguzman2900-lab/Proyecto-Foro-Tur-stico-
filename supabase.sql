@@ -50,6 +50,9 @@ CREATE TABLE IF NOT EXISTS complaints (
   reply TEXT DEFAULT NULL,
   status complaint_status NOT NULL DEFAULT 'pending',
   replied_by VARCHAR(100) DEFAULT NULL,
+  tour_id VARCHAR(50) DEFAULT NULL,
+  tour_title VARCHAR(200) DEFAULT NULL,
+  seller_id INT DEFAULT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_complaints_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

@@ -31,8 +31,8 @@
               <a href="<%= booking.googleMapsUrl %>" target="_blank" class="btn btn-primary btn-booking btn-gmaps">Ir con Google Maps</a>
               <a href="<%= booking.wazeUrl %>" target="_blank" class="btn btn-success btn-booking btn-waze">Ir con Waze</a>
               
-              <form action="/reservar/cancelar/<%= booking.id %>" method="POST" style="margin-top: 0.5rem;" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta reserva? Esta acción no se puede deshacer.');">
-                <button type="submit" class="btn btn-danger btn-booking">Cancelar Reserva</button>
+              <form action="/reservar/cancelar/<%= booking.id %>" method="POST" style="margin-top: 0.5rem;" id="cancel-form-<%= booking.id %>">
+                <button type="button" class="btn btn-danger btn-booking" onclick="showCustomConfirm('¿Estás seguro de que deseas cancelar esta reserva? Esta acción no se puede deshacer.', () => document.getElementById('cancel-form-<%= booking.id %>').submit())">Cancelar Reserva</button>
               </form>
             <% } else { %>
               <span class="booking-cancelled-text">Actividad cancelada / no disponible</span>

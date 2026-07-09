@@ -105,4 +105,46 @@
           });
         }
       });
+
+      // Global Custom Confirmation Modal function
+      function showCustomConfirm(message, onConfirm) {
+        const modal = document.getElementById('custom-confirm-modal');
+        const msgPara = document.getElementById('confirm-modal-message');
+        const btnOk = document.getElementById('confirm-modal-ok');
+        const btnCancel = document.getElementById('confirm-modal-cancel');
+        if (!modal || !msgPara || !btnOk || !btnCancel) {
+          if (confirm(message)) onConfirm();
+          return;
+        }
+
+        msgPara.innerText = message;
+        modal.style.display = 'flex';
+
+        // Clean up previous event listeners by cloning
+        const newBtnOk = btnOk.cloneNode(true);
+        const newBtnCancel = btnCancel.cloneNode(true);
+        btnOk.parentNode.replaceChild(newBtnOk, btnOk);
+        btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+
+        newBtnOk.addEventListener('click', () => {
+          modal.style.display = 'none';
+          onConfirm();
+        });
+
+        newBtnCancel.addEventListener('click', () => {
+          modal.style.display = 'none';
+        });
+      }
     </script>
+
+    <!-- Custom Confirmation Modal DOM -->
+    <div id="custom-confirm-modal" class="custom-confirm-modal" style="display: none;">
+      <div class="confirm-modal-content">
+        <h4>Confirmación</h4>
+        <p id="confirm-modal-message">¿Estás seguro?</p>
+        <div class="confirm-modal-buttons">
+          <button type="button" class="btn btn-secondary" id="confirm-modal-cancel">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="confirm-modal-ok">Aceptar</button>
+        </div>
+      </div>
+    </div>

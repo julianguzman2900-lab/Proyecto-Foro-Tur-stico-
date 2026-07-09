@@ -7,11 +7,17 @@
     <!-- Galería de Fotos -->
     <div class="tour-gallery">
       <div class="gallery-main">
-        <img id="main-gallery-img" src="<%= tour.images[0] || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800' %>" alt="<%= tour.title %>">
+        <img id="main-gallery-img" src="<%= tour.images[0] || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800' %>" 
+             alt="<%= tour.title %>"
+             onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'800\' height=\'500\' viewBox=\'0 0 800 500\'><rect width=\'100%\' height=\'100%\' fill=\'#e2e8f0\'/><text x=\'50%\' y=\'50%\' font-family=\'Outfit,sans-serif\' font-weight=\'bold\' font-size=\'24\' fill=\'#94a3b8\' text-anchor=\'middle\' dy=\'.3em\'><%= tour.title.replace(/[\']/g, ``) %></text></svg>'">
       </div>
       <div class="gallery-side">
         <% tour.images.forEach((img, index) => { %>
-          <img src="<%= img %>" alt="Miniatura <%= index + 1 %>" class="<%= index === 0 ? 'active' : '' %>" onclick="changeImage(this)">
+          <img src="<%= img %>" 
+               alt="Miniatura <%= index + 1 %>" 
+               class="<%= index === 0 ? 'active' : '' %>" 
+               onclick="changeImage(this)"
+               onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'150\' height=\'100\' viewBox=\'0 0 150 100\'><rect width=\'100%\' height=\'100%\' fill=\'%23cbd5e1\'/></svg>'">
         <% }) %>
       </div>
     </div>
@@ -56,7 +62,88 @@
         </div>
       </div>
 
-      <h3 class="description-title">Descripción</h3>
+      <style>
+        .interactive-date-badge {
+          padding: 0.5rem 0.75rem;
+          border-radius: 8px;
+          text-align: center;
+          min-width: 90px;
+          transition: all 0.2s ease;
+        }
+        .interactive-date-badge.available {
+          cursor: pointer;
+          border: 1px solid var(--primary);
+          background: #eff6ff;
+        }
+        .interactive-date-badge.available:hover {
+          background: var(--primary-light);
+        }
+        .interactive-date-badge.sold-out {
+          cursor: not-allowed;
+          border: 1px solid #e2e8f0;
+          background: #f1f5f9;
+        }
+        .interactive-date-badge.available .date-title {
+          color: var(--primary);
+        }
+        .interactive-date-badge.sold-out .date-title {
+          color: #94a3b8;
+        }
+        .interactive-date-badge.available .date-spots {
+          color: #10b981;
+        }
+        .interactive-date-badge.sold-out .date-spots {
+          color: #ef4444;
+        }
+      </style>
+
+      <!-- Interactive Dates List -->
+      <div class="tour-dates-interactive-wrapper" style="margin-top: 1.5rem; background: var(--bg-sec); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
+        <h4 style="margin-top: 0; margin-bottom: 0.75rem; font-weight: 700; font-family: 'DM Serif Display', serif;">Fechas Disponibles y Cupos</h4>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;" class="interactive-dates-list">
+          <% if (tour.dates && tour.dates.length > 0) { %>
+            <% 
+               const days = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+               const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+               tour.dates.forEach(d => { 
+                 const dateObj = new Date(d.date + 'T00:00:00');
+                 const formatted = `${days[dateObj.getDay()]} ${dateObj.getDate()} ${months[dateObj.getMonth()]}`;
+                 const isSoldOut = d.status === 'sold_out';
+            %>
+              <div class="interactive-date-badge <%= isSoldOut ? 'sold-out' : 'available' %>" 
+                   data-date="<%= d.date %>"
+                   onclick="if(!this.classList.contains('sold-out')) selectBookingDate(this.getAttribute('data-date'))">
+                <div class="date-title" style="font-weight: 700; font-size: 0.85rem;"><%= formatted %></div>
+                <div class="date-spots" style="font-size: 0.75rem; font-weight: 600; margin-top: 0.2rem;">
+                  <%= isSoldOut ? 'Agotado' : `${d.spots_available} cupos` %>
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Sin fechas específicas configuradas.</div>
+          <% } %>
+        </div>
+      </div>
+
+      <script>
+        function selectBookingDate(dateStr) {
+          const select = document.getElementById('book-date');
+          if (select) {
+            select.value = dateStr;
+            const event = new Event('change');
+            select.dispatchEvent(event);
+            select.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            select.style.borderColor = 'var(--primary)';
+            select.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.2)';
+            setTimeout(() => {
+              select.style.borderColor = '';
+              select.style.boxShadow = '';
+            }, 1500);
+          }
+        }
+      </script>
+
+      <h3 class="description-title" style="margin-top: 1.5rem;">Descripción</h3>
       <p class="description-text"><%= tour.description %></p>
 
       <div class="provider-box">
@@ -111,7 +198,10 @@
           <% recommendations.forEach(rec => { %>
             <div class="tour-card tour-card-shadow">
               <div class="tour-card-img-container tour-card-img-wrapper">
-                <img src="<%= rec.images[0] || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600' %>" alt="<%= rec.title %>" class="tour-card-img">
+                <img src="<%= rec.images[0] || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600' %>" 
+                     alt="<%= rec.title %>" 
+                     class="tour-card-img"
+                     onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'600\' height=\'400\' viewBox=\'0 0 600 400\'><rect width=\'100%\' height=\'100%\' fill=\'#e2e8f0\'/><text x=\'50%\' y=\'50%\' font-family=\'Outfit,sans-serif\' font-weight=\'bold\' font-size=\'20\' fill=\'#94a3b8\' text-anchor=\'middle\' dy=\'.3em\'><%= rec.title.replace(/[\']/g, ``) %></text></svg>'">
               </div>
               <div class="tour-card-content tour-card-pad">
                 <span class="meta-tag meta-tag-inline"><%= rec.city %></span>
@@ -132,7 +222,7 @@
       <h3 class="section-title">Comentarios y Opiniones</h3>
       
       <!-- Formulario para agregar comentarios -->
-      <% if (user && typeof canComment !== 'undefined' && canComment) { %>
+      <% if (user) { %>
         <form action="/comentario" method="POST" enctype="multipart/form-data" class="comment-form">
           <input type="hidden" name="tour_id" value="<%= tour._id %>">
           
@@ -164,10 +254,6 @@
 
           <button type="submit" class="btn btn-success">Publicar Comentario</button>
         </form>
-      <% } else if (user && typeof canComment !== 'undefined' && !canComment) { %>
-        <div class="login-prompt-box">
-          <p class="login-prompt-text">Solo los viajeros con una reserva completada y finalizada para esta actividad pueden dejar una reseña (máximo una reseña por reserva).</p>
-        </div>
       <% } else { %>
         <div class="login-prompt-box">
           <p class="login-prompt-text">Debes estar registrado para comentar y calificar.</p>
@@ -206,7 +292,7 @@
               <% if (user && (user.role === 'admin' || user.id === comment.user_id)) { %>
                 <div class="comment-actions">
                   <button class="btn btn-secondary btn-xs" onclick="openEditCommentModal('<%= comment._id %>', '<%= comment.rating %>', this.dataset.comment)" data-comment="<%= comment.comment %>">Editar</button>
-                  <a href="/comentario/eliminar/<%= comment._id %>" class="btn btn-danger btn-xs" onclick="return confirm('¿Estás seguro de que deseas eliminar este comentario?')">Eliminar</a>
+                  <a href="javascript:void(0)" class="btn btn-danger btn-xs" onclick="showCustomConfirm('¿Estás seguro de que deseas eliminar este comentario?', () => window.location.href='/comentario/eliminar/<%= comment._id %>')">Eliminar</a>
                 </div>
               <% } %>
             </div>

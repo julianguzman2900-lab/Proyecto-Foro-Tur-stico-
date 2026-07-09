@@ -18,6 +18,16 @@
             <label for="subject">Asunto</label>
             <input type="text" id="subject" name="subject" class="form-control" placeholder="Ej: Problema con la reserva de snorkel / Sugerencia de filtro" required>
           </div>
+
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label for="tour_id">Seleccionar Actividad / Tour relacionado (opcional)</label>
+            <select id="tour_id" name="tour_id" class="form-control">
+              <option value="">-- General / Ninguno --</option>
+              <% tours.forEach(t => { %>
+                <option value="<%= t._id %>"><%= t.title %> (Proveedor: <%= t.seller_name %>)</option>
+              <% }) %>
+            </select>
+          </div>
           
           <div class="form-group" style="margin-bottom: 1.5rem;">
             <label for="message">Mensaje Detallado</label>
@@ -56,6 +66,12 @@
           <p class="message-meta">
             Enviado por: <%= complaint.user_name %> (<%= complaint.user_email %>) el <%= new Date(complaint.created_at).toLocaleDateString('es-ES') %>
           </p>
+
+          <% if (complaint.tour_title) { %>
+            <div style="font-size: 0.8rem; background: #eff6ff; padding: 0.4rem 0.6rem; border-radius: 6px; color: var(--primary); display: inline-block; margin-bottom: 0.75rem; font-weight: 600;">
+              Actividad Relacionada: <%= complaint.tour_title %>
+            </div>
+          <% } %>
           
           <p class="message-body"><%= complaint.message %></p>
 

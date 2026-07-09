@@ -295,11 +295,15 @@
     <% messages.forEach(msg => { %>
       <div class="message-bubble <%= msg.user_id === user.id ? 'my-message' : '' %>" id="msg-<%= msg._id %>" data-user="<%= msg.user_name %>">
         <div class="message-header">
-          <span class="message-author"><%= msg.user_name %></span>
+          <% if (msg.user_role === 'seller') { %>
+            <a href="/?seller_id=<%= msg.user_id %>" class="message-author" style="text-decoration: underline; color: var(--primary); cursor: pointer;"><%= msg.user_name %></a>
+          <% } else { %>
+            <span class="message-author"><%= msg.user_name %></span>
+          <% } %>
           <span class="message-badge <%= msg.user_role %>">
             <%= msg.user_role === 'admin' ? 'Admin' : (msg.user_role === 'seller' ? 'Proveedor' : 'Viajero') %>
           </span>
-          <span class="message-time"><%= new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %></span>
+          <span class="message-time" data-time="<%= new Date(msg.created_at).toISOString() %>"></span>
         </div>
 
         <% if (msg.reply_to_name) { %>
@@ -311,12 +315,12 @@
         <div class="message-text">
           <% 
             let renderedText = msg.message;
-            // Resaltar menciones
+            // Resaltar menciones de usuarios registrados únicamente
             if (msg.mentions && msg.mentions.length > 0) {
-              msg.mentions.forEach(m => {
-                const escapedM = m.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-                const regex = new RegExp(`@${escapedM}`, 'g');
-                renderedText = renderedText.replace(regex, `<span class="mention">@${m}</span>`);
+              usersList.forEach(u => {
+                const escapedName = u.name.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                const regex = new RegExp('@' + escapedName + '(?![a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ])', 'g');
+                renderedText = renderedText.replace(regex, `<span class="mention">@${u.name}</span>`);
               });
             }
           %>
@@ -385,6 +389,14 @@
 
   // Auto scroll to bottom initially
   scrollToBottom();
+
+  // Format EJS server-rendered message times in the user's browser timezone
+  document.querySelectorAll('.message-time').forEach(el => {
+    const timeStr = el.getAttribute('data-time');
+    if (timeStr) {
+      el.textContent = new Date(timeStr).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }
+  });
 
   // Detect scroll to hide/show new messages indicator
   messagesArea.addEventListener('scroll', () => {
@@ -607,9 +619,10 @@
       
       let renderedText = msg.message;
       if (msg.mentions && msg.mentions.length > 0) {
-        msg.mentions.forEach(m => {
-          const regex = new RegExp(`@${m}`, 'g');
-          renderedText = renderedText.replace(regex, `<span class="mention">@${m}</span>`);
+        usersList.forEach(u => {
+          const escapedName = u.name.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+          const regex = new RegExp('@' + escapedName + '(?![a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ])', 'g');
+          renderedText = renderedText.replace(regex, `<span class="mention">@${u.name}</span>`);
         });
       }
 
@@ -636,9 +649,13 @@
       }
       actions += `</div>`;
 
+      const authorHtml = msg.user_role === 'seller' 
+        ? `<a href="/?seller_id=${msg.user_id}" class="message-author" style="text-decoration: underline; color: var(--primary); cursor: pointer;">${msg.user_name}</a>`
+        : `<span class="message-author">${msg.user_name}</span>`;
+
       div.innerHTML = `
         <div class="message-header">
-          <span class="message-author">${msg.user_name}</span>
+          ${authorHtml}
           <span class="message-badge ${msg.user_role}">${msg.user_role === 'admin' ? 'Admin' : (msg.user_role === 'seller' ? 'Proveedor' : 'Viajero')}</span>
           <span class="message-time">${new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
         </div>

@@ -71,6 +71,12 @@ async function testPostgreSQL() {
 
     console.log('✅ Conectado a la base de datos PostgreSQL/Supabase.');
 
+    // Ejecutar migración automática de la tabla complaints
+    await client.query('ALTER TABLE complaints ADD COLUMN IF NOT EXISTS tour_id VARCHAR(50);');
+    await client.query('ALTER TABLE complaints ADD COLUMN IF NOT EXISTS tour_title VARCHAR(200);');
+    await client.query('ALTER TABLE complaints ADD COLUMN IF NOT EXISTS seller_id INT;');
+    console.log('✅ Migración de tabla complaints completada.');
+
     client.release();
 
   } catch (error) {
