@@ -149,7 +149,7 @@
                     <% } else if (tour.status === 'rejected') { %>
                       <span style="font-size: 0.85rem; color: var(--danger); font-weight: bold;">Publicación rechazada</span>
                     <% } %>
-                    <a href="/tour/eliminar/<%= tour._id %>" class="btn btn-danger btn-sm btn-muted" onclick="return confirm('¿Estás seguro de que deseas ELIMINAR esta publicación del foro permanentemente?')">Eliminar</a>
+                    <a href="javascript:void(0)" class="btn btn-danger btn-sm btn-muted" onclick="showCustomConfirm('¿Estás seguro de que deseas ELIMINAR esta publicación del foro permanentemente?', () => window.location.href='/tour/eliminar/<%= tour._id %>')">Eliminar</a>
                   </div>
                 </td>
               </tr>

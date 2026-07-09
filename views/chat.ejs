@@ -576,6 +576,10 @@
       const data = await response.json();
       if (data.success) {
         const messages = data.messages;
+        if (data.usersList) {
+          usersList.length = 0;
+          usersList.push(...data.usersList);
+        }
         
         let hasNewMessages = false;
         if (messages.length > 0) {

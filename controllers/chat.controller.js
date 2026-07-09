@@ -27,7 +27,8 @@ exports.getChat = async (req, res) => {
 exports.getMessages = async (req, res) => {
   try {
     const messages = await Message.find().sort({ created_at: 1 }).limit(100);
-    res.json({ success: true, messages });
+    const [users] = await db.mysql.query('SELECT name, role FROM users');
+    res.json({ success: true, messages, usersList: users });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: 'Error al obtener mensajes.' });

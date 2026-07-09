@@ -21,17 +21,64 @@ const chatRoutes = require('./routes/chat.routes');
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+
+// Configuración de Seguridad HTTP con Helmet
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+      imgSrc: ["'self'", "data:", "https://images.unsplash.com", "https://res.cloudinary.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
+      connectSrc: ["'self'", "ws:", "wss:"],
+    },
+  },
+}));
+
+// Prevenir ataques de inyección NoSQL en MongoDB
+app.use(mongoSanitize());
+
+// Limitador de peticiones general para evitar abuso (DDoS básico)
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 300, // Máximo 300 peticiones por ventana
+  message: 'Demasiadas peticiones desde esta IP. Por favor intenta de nuevo más tarde.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(generalLimiter);
+
+// Limitador estricto para rutas críticas de autenticación para mitigar fuerza bruta
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30, // Máximo 30 intentos en 15 minutos
+  message: 'Demasiados intentos de acceso. Por favor intenta de nuevo en 15 minutos.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/login', authLimiter);
+app.use('/registro', authLimiter);
+
 // Middlewares estándar
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'views', 'public')));
 
-// Configuración de Sesiones
+// Configuración de Sesiones Seguras
 app.use(session({
   secret: process.env.SESSION_SECRET || 'supersecretkey',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24 horas
+  cookie: { 
+    maxAge: 24 * 60 * 60 * 1000, // 24 horas
+    httpOnly: true, // Evita acceso JavaScript a cookies de sesión (XSS)
+    secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
+    sameSite: 'lax' // Previene ataques CSRF
+  }
 }));
 
 const passport = require('passport');
