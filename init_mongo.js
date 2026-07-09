@@ -16,7 +16,7 @@ const Tour = require('./models/Tour');
 const Comment = require('./models/Comment');
 const Message = require('./models/Message');
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/foro_turistico';
+const MONGODB_URI = (process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/foro_turistico').trim();
 
 async function initializeMongoDB() {
   try {

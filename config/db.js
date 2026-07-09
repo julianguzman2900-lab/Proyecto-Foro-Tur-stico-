@@ -1,36 +1,123 @@
-const mysql = require('mysql2/promise');
+const { Pool } = require('pg');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-// Configuración de MySQL
-const mysqlPool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASS || '',
-  database: process.env.DB_NAME || 'foro_turistico',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+// ===============================
+// CONFIGURACIÓN POSTGRESQL / SUPABASE
+// ===============================
+
+const dbPassword = process.env.DB_PASSWORD || '';
+
+const connectionString =
+  process.env.DATABASE_URL ||
+  `postgresql://postgres:${dbPassword}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
+
+const pgPool = new Pool({
+  connectionString,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
-// Probar conexión MySQL
-async function testMySQL() {
+// Adaptador para compatibilidad con consultas antiguas
+const queryWrapper = {
+  query: async (text, params) => {
+    const res = await pgPool.query(text, params);
+
+    const resultMock = {
+      insertId:
+        res.rows && res.rows[0] && res.rows[0].id
+          ? res.rows[0].id
+          : null,
+      affectedRows: res.rowCount,
+      rowCount: res.rowCount
+    };
+
+    return [res.rows, resultMock];
+  },
+
+  getConnection: async () => {
+    const client = await pgPool.connect();
+
+    return {
+      query: async (text, params) => {
+        const res = await client.query(text, params);
+
+        const resultMock = {
+          insertId:
+            res.rows && res.rows[0] && res.rows[0].id
+              ? res.rows[0].id
+              : null,
+          affectedRows: res.rowCount,
+          rowCount: res.rowCount
+        };
+
+        return [res.rows, resultMock];
+      },
+
+      release: () => client.release()
+    };
+  }
+};
+
+
+// ===============================
+// PROBAR POSTGRESQL
+// ===============================
+
+async function testPostgreSQL() {
   try {
-    const connection = await mysqlPool.getConnection();
-    console.log(' Conectado a la base de datos MySQL.');
-    connection.release();
+    const client = await pgPool.connect();
+
+    console.log('✅ Conectado a la base de datos PostgreSQL/Supabase.');
+
+    client.release();
+
   } catch (error) {
-    console.error(' Error al conectar a MySQL:', error.message);
+    console.error(
+      '❌ Error al conectar a PostgreSQL/Supabase:',
+      error.message
+    );
   }
 }
-testMySQL();
 
-// Configuración de MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/foro_turistico')
-  .then(() => console.log(' Conectado a la base de datos MongoDB.'))
-  .catch(error => console.error(' Error al conectar a MongoDB:', error.message));
+testPostgreSQL();
+
+
+// ===============================
+// CONFIGURACIÓN MONGODB ATLAS
+// ===============================
+
+const mongoUri = process.env.MONGODB_URI;
+
+if (!mongoUri) {
+  console.error(
+    '❌ No existe MONGODB_URI en el archivo .env'
+  );
+} else {
+
+  mongoose.connect(mongoUri, {
+    serverSelectionTimeoutMS: 10000
+  })
+  .then(() => {
+    console.log('✅ Conectado a MongoDB Atlas.');
+  })
+  .catch((error) => {
+    console.error(
+      '❌ Error al conectar a MongoDB:',
+      error.message
+    );
+  });
+
+}
+
+
+// ===============================
+// EXPORTACIONES
+// ===============================
 
 module.exports = {
-  mysql: mysqlPool,
+  mysql: queryWrapper,
+  pgPool,
   mongoose
 };

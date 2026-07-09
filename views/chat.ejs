@@ -328,8 +328,10 @@
 
         <div class="message-actions">
           <a onclick="setReply('<%= msg._id %>', '<%= msg.user_name %>')">Responder</a>
-          <% if (msg.user_id === user.id) { %>
-            <a onclick="setEdit('<%= msg._id %>', '<%= msg.message.replace(/'/g, "\\'") %>')">Editar</a>
+          <% if (msg.user_id === user.id) { 
+            const escapedMsgForEdit = msg.message.replace(/'/g, "\\'");
+          %>
+            <a onclick="setEdit('<%= msg._id %>', '<%= escapedMsgForEdit %>')">Editar</a>
           <% } %>
           <% if (msg.user_id === user.id || user.role === 'admin') { %>
             <a class="delete-action" onclick="deleteMessage('<%= msg._id %>')">Eliminar</a>
@@ -363,9 +365,10 @@
 </div>
 
 <script>
-  const currentUserId = <%= user.id %>;
-  const currentUserName = "<%= user.name %>";
-  const usersList = <%- JSON.stringify(usersList) %>;
+  const currentUserId = '<%= user.id %>';
+  const currentUserName = '<%= user.name %>';
+  const currentUserRole = '<%= user.role %>';
+  const usersList = JSON.parse(decodeURIComponent('<%= encodeURIComponent(JSON.stringify(usersList)) %>'));
   
   const messagesArea = document.getElementById('messagesArea');
   const chatInput = document.getElementById('chatInput');
@@ -620,13 +623,18 @@
         <small style="color: var(--text-light); font-size: 0.7rem; font-style: italic; margin-left: 0.25rem;">(editado)</small>
       ` : '';
 
-      const actions = `
+      let actions = `
         <div class="message-actions">
           <a onclick="setReply('${msg._id}', '${msg.user_name}')">Responder</a>
-          ${msg.user_id === currentUserId ? `<a onclick="setEdit('${msg._id}', '${msg.message.replace(/'/g, "\\'")}')">Editar</a>` : ''}
-          ${msg.user_id === currentUserId || <%= user.role === 'admin' %> ? `<a class="delete-action" onclick="deleteMessage('${msg._id}')">Eliminar</a>` : ''}
-        </div>
       `;
+      if (msg.user_id === currentUserId) {
+        const escapedMsg = msg.message.replace(/'/g, "\\'");
+        actions += `<a onclick="setEdit('${msg._id}', '${escapedMsg}')">Editar</a>`;
+      }
+      if (msg.user_id === currentUserId || currentUserRole === 'admin') {
+        actions += `<a class="delete-action" onclick="deleteMessage('${msg._id}')">Eliminar</a>`;
+      }
+      actions += `</div>`;
 
       div.innerHTML = `
         <div class="message-header">
